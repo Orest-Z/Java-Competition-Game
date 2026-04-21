@@ -26,5 +26,7 @@ bin/
 ### VS Code ###
 .vscode/
 
+untitled.iml/
+
 ### Mac OS ###
 .DS_Store
