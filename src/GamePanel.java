@@ -15,11 +15,11 @@ import java.awt.geom.*;
 public class GamePanel extends JPanel implements KeyListener {
 
     // ── Panel / road dimensions ──────────────────────────────────────────────
-    private static final int PANEL_WIDTH  = 400;
+    private static final int PANEL_WIDTH  = 480;
     private static final int PANEL_HEIGHT = 600;
 
-    private static final int ROAD_LEFT  = 60;   // left edge of drivable road
-    private static final int ROAD_RIGHT = 340;  // right edge of drivable road
+    private static final int ROAD_LEFT  = 40;   // left edge of drivable road
+    private static final int ROAD_RIGHT = 440;  // right edge of drivable road
 
     // ── Player car properties ────────────────────────────────────────────────
     private static final int CAR_WIDTH   = 40;
@@ -118,15 +118,26 @@ public class GamePanel extends JPanel implements KeyListener {
         // Kerb stripes (right)
         drawKerb(g2, ROAD_RIGHT, 12);
 
-        // Centre dashed lane divider
-        g2.setColor(COLOR_LANE_MARK);
-        g2.setStroke(new BasicStroke(3f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER,
-                10f, new float[]{30f, 30f}, laneMarkerOffset));
-        int centreX = (ROAD_LEFT + ROAD_RIGHT) / 2;
-        g2.drawLine(centreX, 0, centreX, PANEL_HEIGHT);
 
-        // Reset stroke
+        g2.setColor(COLOR_LANE_MARK);
+
+        //Konfigurojmë penelin që të jetë me ndërprerje (dashed)
+
+        float[] dashPattern = {30f, 30f};
+        g2.setStroke(new BasicStroke(3f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER,
+                10f, dashPattern, laneMarkerOffset));    // laneMarkerOffset ben qe vija te "levize"
+                                                                    //.CAP_BUTT BUTT do te thote që vija pritet drejt
+
+        //Ndertimi i 4 korsive  me ane te nje cikli for(update day2)
+        int totalLanes = 4;
+        int laneWidth = (ROAD_RIGHT - ROAD_LEFT) / totalLanes;
+        for (int i = 1; i < totalLanes; i++) {
+            int lineX = ROAD_LEFT + (i * laneWidth);
+            g2.drawLine(lineX, 0, lineX, PANEL_HEIGHT);
+        }
+
         g2.setStroke(new BasicStroke(1f));
+
     }
 
     /** Draws alternating red/white kerb blocks along a vertical strip. */
