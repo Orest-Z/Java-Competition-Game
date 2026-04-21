@@ -8,7 +8,7 @@ public class CarDodgeGame {
     public static void main(String[] args) {
         // Run UI on the Event Dispatch Thread (Swing best practice)
         SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("Car Dodge Game");
+            JFrame frame = new JFrame("Neon Highway");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setResizable(false);
 
