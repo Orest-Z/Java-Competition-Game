@@ -92,6 +92,8 @@ public class MenuPanel extends JPanel {
     }
 
     private void openSettings() {
+        /*Aktualisht thjesht kam vendosur nje dialog qe tregon se do te shtoj me shume
+        settings ne ditet ne vazhdim si psh Full Screen themes etj. */
             JDialog dialog = new JDialog(mainFrame, "Settings", true);
             dialog.setLayout(new FlowLayout());
             dialog.getContentPane().setBackground(new Color(20, 20, 20));
