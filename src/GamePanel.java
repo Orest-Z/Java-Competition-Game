@@ -44,6 +44,9 @@ public class GamePanel extends JPanel implements KeyListener {
     //Boolean per te percaktuar nqfs loja ka mbaruar ose jo
     private boolean gameOver = false;
 
+    //Buton per te restartuar lojen
+    private JButton restartButton;
+
     // ── Road lane-marker animation ───────────────────────────────────────────
     private int laneMarkerOffset = 0;   // scrolls downward each tick
 
@@ -72,11 +75,33 @@ public class GamePanel extends JPanel implements KeyListener {
             new Color(255, 215,   0),  // ari
     };
 
+
     public GamePanel() {
         setPreferredSize(new Dimension(PANEL_WIDTH, PANEL_HEIGHT));
         setBackground(COLOR_GRASS);// Required to receive key events;
         setFocusable(true);
         addKeyListener(this);
+
+        // Krijo butonin por fshihe — shfaqet vetëm pas Game Over
+        restartButton = new JButton("↺  RESTART");
+        restartButton.setFont(new Font("Monospaced", Font.BOLD, 16));
+        restartButton.setForeground(Color.WHITE);
+        restartButton.setBackground(new Color(180, 30, 30));
+        restartButton.setFocusPainted(false);
+        restartButton.setBorderPainted(false);
+        restartButton.setVisible(false);  // i fshehur në fillim
+
+        restartButton.addActionListener(e -> restartGame());
+
+// Pozicionoje në qendër të panelit
+        setLayout(null);  // layout manual
+        restartButton.setBounds(
+                PANEL_WIDTH / 2 - 80,   // x: i centruar
+                PANEL_HEIGHT / 2 + 40,  // y: poshtë tekstit GAME OVER
+                160,                     // gjerësia
+                40                       // lartësia
+        );
+        add(restartButton);
 
         // Start car centered on the road, near the bottom
         carX = (ROAD_LEFT + ROAD_RIGHT) / 2 - CAR_WIDTH / 2;
@@ -112,6 +137,22 @@ public class GamePanel extends JPanel implements KeyListener {
     public void startGame() {
         requestFocusInWindow();
         gameTimer.start();
+    }
+
+    //Metoda qe perdoret per te rifilluar lojen
+    private void restartGame() {
+        // Rivendos variablat
+        gameOver    = false;
+        spawnTimer  = 0;
+        enemies.clear();  // fshi të gjitha makinat armike
+
+        // Rivendos pozicionin e lojtarit në qendër
+        carX = (ROAD_LEFT + ROAD_RIGHT) / 2 - CAR_WIDTH / 2;
+
+        // Fshih butonin dhe rinis loop-in
+        restartButton.setVisible(false);
+        gameTimer.start();
+        requestFocusInWindow();
     }
 
     // ── Game logic update ─────────────────────────────────────────────────────
@@ -308,6 +349,7 @@ public class GamePanel extends JPanel implements KeyListener {
                 if (playerHitbox.intersects(enemy.hitbox)) {
                     gameOver = true;
                     gameTimer.stop();
+                    restartButton.setVisible(true);
                 }
             }
         }
