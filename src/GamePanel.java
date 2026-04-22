@@ -143,6 +143,7 @@ public class GamePanel extends JPanel implements KeyListener {
             }
         }
 
+        checkCollisions();
 
         // Scroll lane markers downward to create a sense of forward motion
         laneMarkerOffset = (laneMarkerOffset + 4) % 60;
