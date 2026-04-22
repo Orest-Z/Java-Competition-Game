@@ -2,6 +2,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.*;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * GamePanel is the main canvas for the car dodging game.
@@ -22,17 +24,25 @@ public class GamePanel extends JPanel implements KeyListener {
     private static final int ROAD_RIGHT = 440;  // right edge of drivable road
 
     // ── Player car properties ────────────────────────────────────────────────
-    private static final int CAR_WIDTH   = 40;
-    private static final int CAR_HEIGHT  = 70;
+    static final int CAR_WIDTH   = 40;
+    static final int CAR_HEIGHT  = 70;
     private static final int MOVE_SPEED  = 6;   // pixels per frame
 
     /** Top-left X of the player car (Y is fixed near the bottom). */
     private int carX;
     private final int carY;
 
+    //Lista per enemy Cars
+    private ArrayList<EnemyCar> enemies = new ArrayList<>();
+    private int spawnTimer = 0;
+
     // ── Input state ──────────────────────────────────────────────────────────
     private boolean movingLeft  = false;
     private boolean movingRight = false;
+
+
+    //Boolean per te percaktuar nqfs loja ka mbaruar ose jo
+    private boolean gameOver = false;
 
     // ── Road lane-marker animation ───────────────────────────────────────────
     private int laneMarkerOffset = 0;   // scrolls downward each tick
@@ -99,11 +109,40 @@ public class GamePanel extends JPanel implements KeyListener {
 
     private void update() {
         // Move car according to held keys
-        if (movingLeft)  carX -= MOVE_SPEED;
+        if (movingLeft) carX -= MOVE_SPEED;
         if (movingRight) carX += MOVE_SPEED;
 
         // Clamp car so it stays on the road (accounting for car width)
-        carX = Math.max(ROAD_LEFT,  Math.min(carX, ROAD_RIGHT - CAR_WIDTH));
+        carX = Math.max(ROAD_LEFT, Math.min(carX, ROAD_RIGHT - CAR_WIDTH));
+
+
+
+        // [2] Spawning — çdo 90 frame shto një makinë të re
+        spawnTimer++;
+        if (spawnTimer >= 90) {
+            spawnTimer = 0;
+
+            int totalLanes = 4;
+            int laneWidth = (ROAD_RIGHT - ROAD_LEFT) / totalLanes;
+            int randomLane = (int) (Math.random() * totalLanes);
+
+            // Formula per spawnin e makinave te tjera
+            int enemyX = ROAD_LEFT + (randomLane * laneWidth) + (laneWidth / 2) - (CAR_WIDTH / 2);
+            int enemyY = -CAR_HEIGHT;        // ku duhet të shfaqet — sipër ekranit
+
+
+            enemies.add(new EnemyCar(enemyX, enemyY, 4)); // çfarë speed i jep?
+        }
+
+        Iterator<EnemyCar> it = enemies.iterator();
+        while (it.hasNext()) {
+            EnemyCar enemy = it.next();
+            enemy.update();
+            if (enemy.y > PANEL_HEIGHT) {   // doli nga ekrani
+                it.remove();                // ← e sigurt për heqje gjatë loop-it
+            }
+        }
+
 
         // Scroll lane markers downward to create a sense of forward motion
         laneMarkerOffset = (laneMarkerOffset + 4) % 60;
@@ -123,6 +162,7 @@ public class GamePanel extends JPanel implements KeyListener {
 
         drawRoad(g2);
         drawPlayerCar(g2);
+        drawEnemies(g2);
         drawHUD(g2);
     }
 
@@ -224,14 +264,42 @@ public class GamePanel extends JPanel implements KeyListener {
         g2.drawRoundRect(x, y, w, h, 10, 10);
         g2.setStroke(new BasicStroke(1f));
     }
+        private void drawEnemies(Graphics2D g2) {
+            g2.setColor(Color.BLUE); // për tani — ngjyrë e thjeshtë
+            for (EnemyCar enemy : enemies) {
+                g2.fillRoundRect(enemy.x, enemy.y, CAR_WIDTH, CAR_HEIGHT, 10, 10);
+            }
+        }
 
     /** Draws a simple HUD showing the control hint. */
     private void drawHUD(Graphics2D g2) {
         g2.setColor(new Color(255, 255, 255, 160));
         g2.setFont(new Font("Monospaced", Font.BOLD, 12));
         g2.drawString("← → ARROW KEYS to move", ROAD_LEFT + 8, PANEL_HEIGHT - 10);
+
+        //Nqs mbaron loja shfaqim me ngjyre te kuqe mesazhin game over
+        if (gameOver) {
+            g2.setColor(Color.RED);
+            g2.setFont(new Font("Monospaced", Font.BOLD, 36));
+            g2.drawString("GAME OVER", 150, PANEL_HEIGHT / 2);
+        }
     }
 
+        private void checkCollisions() {
+            Rectangle playerHitbox = new Rectangle(
+                    carX + 5,           // inset 5px nga e majta
+                    carY + 5,           // inset 5px nga sipër
+                    CAR_WIDTH - 10,     // më i ngushtë se vizuali
+                    CAR_HEIGHT - 10
+            );
+
+            for (EnemyCar enemy : enemies) {
+                if (playerHitbox.intersects(enemy.hitbox)) {
+                    gameOver = true;
+                    gameTimer.stop();
+                }
+            }
+        }
     // ── KeyListener ──────────────────────────────────────────────────────────
 
     @Override
