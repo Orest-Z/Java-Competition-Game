@@ -63,6 +63,15 @@ public class GamePanel extends JPanel implements KeyListener {
 
     // ─────────────────────────────────────────────────────────────────────────
 
+    // Ngjyrat e mundshme për makinat enemy
+    private static final Color[] ENEMY_COLORS = {
+            new Color(30,  144, 255),  // blu
+            new Color(255, 165,   0),  // portokalli
+            new Color(50,  205,  50),  // gjelbër
+            new Color(148,   0, 211),  // vjollcë
+            new Color(255, 215,   0),  // ari
+    };
+
     public GamePanel() {
         setPreferredSize(new Dimension(PANEL_WIDTH, PANEL_HEIGHT));
         setBackground(COLOR_GRASS);// Required to receive key events;
@@ -130,8 +139,9 @@ public class GamePanel extends JPanel implements KeyListener {
             int enemyX = ROAD_LEFT + (randomLane * laneWidth) + (laneWidth / 2) - (CAR_WIDTH / 2);
             int enemyY = -CAR_HEIGHT;        // ku duhet të shfaqet — sipër ekranit
 
-
-            enemies.add(new EnemyCar(enemyX, enemyY, 4)); // çfarë speed i jep?
+            //update qe zgjidhet nje ngjyra random per makinat enemy sa here bejne spawn ne pozicione te ndryshme
+            Color randomColor = ENEMY_COLORS[(int)(Math.random() * ENEMY_COLORS.length)];
+            enemies.add(new EnemyCar(enemyX, enemyY, 4, randomColor));
         }
 
         Iterator<EnemyCar> it = enemies.iterator();
@@ -265,12 +275,12 @@ public class GamePanel extends JPanel implements KeyListener {
         g2.drawRoundRect(x, y, w, h, 10, 10);
         g2.setStroke(new BasicStroke(1f));
     }
-        private void drawEnemies(Graphics2D g2) {
-            g2.setColor(Color.BLUE); // për tani — ngjyrë e thjeshtë
-            for (EnemyCar enemy : enemies) {
-                g2.fillRoundRect(enemy.x, enemy.y, CAR_WIDTH, CAR_HEIGHT, 10, 10);
-            }
+    //Ndryshova metoden e vizatimit te enemy cars duke ja lene ate klases me vete tek EnemyCar.java
+    private void drawEnemies(Graphics2D g2) {
+        for (EnemyCar enemy : enemies) {
+            enemy.draw(g2);
         }
+    }
 
     /** Draws a simple HUD showing the control hint. */
     private void drawHUD(Graphics2D g2) {
