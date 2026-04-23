@@ -36,6 +36,12 @@ public class GamePanel extends JPanel implements KeyListener {
     private ArrayList<EnemyCar> enemies = new ArrayList<>();
     private int spawnTimer = 0;
 
+
+    //Shtimi per sistemin e pikeve dhe niveleve te lojes(dita 4)
+    private int score        = 0;   // rritet çdo frame
+    private int level        = 1;   // niveli aktual
+    private int enemySpeed   = 4;   // fillon me 4, rritet me level
+
     // ── Input state ──────────────────────────────────────────────────────────
     private boolean movingLeft  = false;
     private boolean movingRight = false;
@@ -153,6 +159,11 @@ public class GamePanel extends JPanel implements KeyListener {
         restartButton.setVisible(false);
         gameTimer.start();
         requestFocusInWindow();
+
+        //Behet reset niveli dhe piket
+        score       = 0;
+        level       = 1;
+        enemySpeed  = 4;
     }
 
     // ── Game logic update ─────────────────────────────────────────────────────
@@ -182,8 +193,7 @@ public class GamePanel extends JPanel implements KeyListener {
 
             //update qe zgjidhet nje ngjyra random per makinat enemy sa here bejne spawn ne pozicione te ndryshme
             Color randomColor = ENEMY_COLORS[(int)(Math.random() * ENEMY_COLORS.length)];
-            enemies.add(new EnemyCar(enemyX, enemyY, 4, randomColor));
-        }
+            enemies.add(new EnemyCar(enemyX, enemyY, enemySpeed, randomColor));        }
 
         Iterator<EnemyCar> it = enemies.iterator();
         while (it.hasNext()) {
@@ -198,6 +208,15 @@ public class GamePanel extends JPanel implements KeyListener {
 
         // Scroll lane markers downward to create a sense of forward motion
         laneMarkerOffset = (laneMarkerOffset + 4) % 60;
+        // Score rritet çdo frame që jeton
+        score++;
+
+        // Çdo 500 pikë, rritet niveli dhe shpejtësia
+        if (score % 500 == 0) {
+            level++;
+            enemySpeed = Math.min(enemySpeed + 1, 12); // maksimumi 12
+            spawnTimer = Math.max(spawnTimer - 5, 40); // spawn më shpesh, min 40 frame
+        }
     }
 
     // ── Rendering ─────────────────────────────────────────────────────────────
@@ -328,6 +347,12 @@ public class GamePanel extends JPanel implements KeyListener {
         g2.setColor(new Color(255, 255, 255, 160));
         g2.setFont(new Font("Monospaced", Font.BOLD, 12));
         g2.drawString("← → ARROW KEYS to move", ROAD_LEFT + 8, PANEL_HEIGHT - 10);
+
+        //Ndertohet nje HUD i ri per te treguar me tekst numrin e pikeve dhe nivelin qe ndodhet lojtari
+        g2.setColor(new Color(255, 255, 255, 200));
+        g2.setFont(new Font("Monospaced", Font.BOLD, 14));
+        g2.drawString("SCORE: " + score,           ROAD_LEFT + 8, 24);
+        g2.drawString("LEVEL: " + level,  ROAD_RIGHT - 80,        24);
 
         //Nqs mbaron loja shfaqim me ngjyre te kuqe mesazhin game over
         if (gameOver) {
