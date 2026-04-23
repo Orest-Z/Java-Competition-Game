@@ -46,7 +46,7 @@ public class MainFrame extends JFrame {
         mainContainer = new JPanel(cardLayout);
 
         MenuPanel menuPanel = new MenuPanel(this);
-        gamePanel = new GamePanel();
+        gamePanel = new GamePanel(this);
 
         // Wrapper i zi që centron GamePanel në fullscreen
         JPanel gameWrapper = new JPanel(new GridBagLayout());

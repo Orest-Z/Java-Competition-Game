@@ -46,6 +46,8 @@ public class GamePanel extends JPanel implements KeyListener {
     private boolean movingLeft  = false;
     private boolean movingRight = false;
 
+    //GamePanel duhet ta njohe mainframe ne menyre qe kur loja te mbaroje te ket mundesi te kthehet tek ai me buton
+    private MainFrame mainFrame;
 
     // Keto 2 variabla do na duhen per diten e neserme pasi te shtoj dhe muziken dhe sound effects
     public static boolean musicEnabled  = true;
@@ -56,6 +58,9 @@ public class GamePanel extends JPanel implements KeyListener {
 
     //Buton per te restartuar lojen
     private JButton restartButton;
+
+    //Butoni per tu kthyer ne menune kryesore
+    private JButton menuButton;
 
     // ── Road lane-marker animation ───────────────────────────────────────────
     private int laneMarkerOffset = 0;   // scrolls downward each tick
@@ -86,7 +91,7 @@ public class GamePanel extends JPanel implements KeyListener {
     };
 
 
-    public GamePanel() {
+    public GamePanel(MainFrame mainFrame) {
         setPreferredSize(new Dimension(PANEL_WIDTH, PANEL_HEIGHT));
         setBackground(COLOR_GRASS);// Required to receive key events;
         setFocusable(true);
@@ -112,6 +117,43 @@ public class GamePanel extends JPanel implements KeyListener {
                 40                       // lartësia
         );
         add(restartButton);
+
+        /*Shtova nje buton te ri Menu i cili te kthen ne faqen e pare
+        Ky buton eshte i ngjashem me restart game gjithashtu sepse
+        i ben reset score dhe level por te jep mundesine qe te ndryshosh
+        settings ose te dalesh nga loja*/
+        menuButton = new JButton("⌂  MENU");
+        menuButton.setFont(new Font("Monospaced", Font.BOLD, 16));
+        menuButton.setForeground(Color.WHITE);
+        menuButton.setBackground(new Color(30, 30, 100));
+        menuButton.setFocusPainted(false);
+        menuButton.setBorderPainted(false);
+        menuButton.setVisible(false);
+
+        menuButton.addActionListener(e -> {
+            // Rivendos gjendjen e lojës
+            gameOver   = false;
+            score      = 0;
+            level      = 1;
+            enemySpeed = 4;
+            spawnTimer = 0;
+            enemies.clear();
+            carX = (ROAD_LEFT + ROAD_RIGHT) / 2 - CAR_WIDTH / 2;
+
+            // Fshih butonat
+            restartButton.setVisible(false);
+            menuButton.setVisible(false);
+
+            // Kthehu te menu
+            mainFrame.switchTo(MainFrame.MENU);
+        });
+
+        menuButton.setBounds(
+                PANEL_WIDTH / 2 - 80,
+                PANEL_HEIGHT / 2 + 90,  // ← poshtë butonit RESTART
+                160, 40
+        );
+        add(menuButton);
 
         // Start car centered on the road, near the bottom
         carX = (ROAD_LEFT + ROAD_RIGHT) / 2 - CAR_WIDTH / 2;
@@ -363,6 +405,7 @@ public class GamePanel extends JPanel implements KeyListener {
                     gameOver = true;
                     gameTimer.stop();
                     restartButton.setVisible(true);
+                    menuButton.setVisible(true);  // ← shto këtë
                 }
             }
         }
