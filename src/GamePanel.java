@@ -187,6 +187,7 @@ public class GamePanel extends JPanel implements KeyListener {
 
         // Fshih butonin dhe rinis loop-in
         restartButton.setVisible(false);
+        menuButton.setVisible(false); // Rregullova nje bug qe butoni Menu ngelte ne ekran pasi klikohej restart
         gameTimer.start();
         requestFocusInWindow();
 
@@ -208,9 +209,9 @@ public class GamePanel extends JPanel implements KeyListener {
 
 
 
-        // [2] Spawning — çdo 90 frame shto një makinë të re
+        // [2] Spawning — çdo 40 frame shto një makinë të re
         spawnTimer++;
-        if (spawnTimer >= 90) {
+        if (spawnTimer >= 40) {
             spawnTimer = 0;
 
             int totalLanes = 4;
