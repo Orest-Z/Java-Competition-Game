@@ -123,30 +123,14 @@ public class GamePanel extends JPanel implements KeyListener {
             repaint();
         });
 
-        /*Kur behet klikimi i butonit PLAY ben te mundur ndryshimin e panelit dhe
-        startimit te lojes */
-        addComponentListener(new ComponentAdapter() {
-            @Override
-            public void componentShown(ComponentEvent e) {
-                // Thirret automatikisht nga CardLayout kur ky panel bëhet i dukshëm
-                requestFocusInWindow();
-                if (!gameTimer.isRunning()) {
-                    gameTimer.start();
-                }
-            }
-
-            @Override
-            public void componentHidden(ComponentEvent e) {
-                // Ndalon loop-in kur kthehet te menuja — kursen CPU
-                gameTimer.stop();
-            }
-        });
     }
 
     /** Call after the window is visible so the panel can receive focus. */
     public void startGame() {
         requestFocusInWindow();
-        gameTimer.start();
+        if (!gameTimer.isRunning()) {
+            gameTimer.start();
+        }
     }
 
     //Metoda qe perdoret per te rifilluar lojen

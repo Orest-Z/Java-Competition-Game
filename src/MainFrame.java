@@ -8,6 +8,8 @@ public class MainFrame extends JFrame {
     // The layout manager that handles switching
     private CardLayout cardLayout;
 
+    private GamePanel gamePanel;
+
     // The single container that holds ALL screens
     private JPanel mainContainer;
 
@@ -22,51 +24,55 @@ public class MainFrame extends JFrame {
 
     public void toggleFullscreen() {
         isFullscreen = !isFullscreen;
-        dispose();                          // lëshon window-in aktual
-        setUndecorated(isFullscreen);       // heq title bar në fullscreen
+        dispose();
+        setUndecorated(isFullscreen);
         if (isFullscreen) {
             setExtendedState(JFrame.MAXIMIZED_BOTH);
         } else {
             setExtendedState(JFrame.NORMAL);
-            pack();
-            setLocationRelativeTo(null);
         }
         setVisible(true);
+        if (!isFullscreen) {
+            pack();                      // ← pas setVisible, jo para
+            setLocationRelativeTo(null);
+        }
     }
-
     public MainFrame() {
         setTitle("Neon Highway");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setResizable(false);
 
-        cardLayout     = new CardLayout();
-        mainContainer  = new JPanel(cardLayout);  // container uses CardLayout
+        cardLayout    = new CardLayout();
+        mainContainer = new JPanel(cardLayout);
 
-        // Create screens — pass 'this' so panels can call switchTo()
         MenuPanel menuPanel = new MenuPanel(this);
-        GamePanel gamePanel = new GamePanel();
+        gamePanel = new GamePanel();
 
-        // Add each panel with its unique string key
-        // Think of it as: cardLayout.register("MENU", menuPanel)
-        mainContainer.add(menuPanel, MENU);
-        mainContainer.add(gamePanel, GAME);
+        // Wrapper i zi që centron GamePanel në fullscreen
+        JPanel gameWrapper = new JPanel(new GridBagLayout());
+        gameWrapper.setBackground(Color.BLACK);
+        gameWrapper.add(gamePanel, new GridBagConstraints());
 
-        add(mainContainer);   // frame holds just the one container
+        JPanel menuWrapper = new JPanel(new GridBagLayout());
+        menuWrapper.setBackground(Color.BLACK);
+        menuWrapper.add(menuPanel, new GridBagConstraints());
+        mainContainer.add(menuWrapper, MENU);
+        mainContainer.add(gameWrapper, GAME);
+
+        add(mainContainer);
         pack();
         setLocationRelativeTo(null);
     }
 
     /** Called by any panel that wants to switch screens */
     public void switchTo(String key) {
-
         cardLayout.show(mainContainer, key);
 
-        // If switching to the game, request focus so KeyListener works
         if (key.equals(GAME)) {
-            // small delay lets the card finish painting before grabbing focus
-            SwingUtilities.invokeLater(() ->
-                    mainContainer.getComponent(1).requestFocusInWindow()
-            );
+            SwingUtilities.invokeLater(() -> {
+                gamePanel.requestFocusInWindow();
+                gamePanel.startGame();  // ← thirr direkt, mos u mbështet në ComponentListener
+            });
         }
     }
 
