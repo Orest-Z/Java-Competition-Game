@@ -15,6 +15,25 @@ public class MainFrame extends JFrame {
     public static final String MENU  = "MENU";
     public static final String GAME  = "GAME";
 
+    //Metoda per ta kthyer lojen ne full screen
+    private boolean isFullscreen = false;
+
+    public boolean isFullscreen() { return isFullscreen; }
+
+    public void toggleFullscreen() {
+        isFullscreen = !isFullscreen;
+        dispose();                          // lëshon window-in aktual
+        setUndecorated(isFullscreen);       // heq title bar në fullscreen
+        if (isFullscreen) {
+            setExtendedState(JFrame.MAXIMIZED_BOTH);
+        } else {
+            setExtendedState(JFrame.NORMAL);
+            pack();
+            setLocationRelativeTo(null);
+        }
+        setVisible(true);
+    }
+
     public MainFrame() {
         setTitle("Neon Highway");
         setDefaultCloseOperation(EXIT_ON_CLOSE);

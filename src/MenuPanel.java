@@ -91,21 +91,78 @@ public class MenuPanel extends JPanel {
         return btn;
     }
 
+
+    //Metoda per te stiluar checkboxet
+    private void styleCheckbox(JCheckBox box) {
+        box.setForeground(Color.WHITE);
+        box.setBackground(new Color(15, 15, 25));
+        box.setFont(new Font("Monospaced", Font.PLAIN, 13));
+        box.setFocusPainted(false);
+    }
+
     private void openSettings() {
-        /*Aktualisht thjesht kam vendosur nje dialog qe tregon se do te shtoj me shume
-        settings ne ditet ne vazhdim si psh Full Screen themes etj. */
-            JDialog dialog = new JDialog(mainFrame, "Settings", true);
-            dialog.setLayout(new FlowLayout());
-            dialog.getContentPane().setBackground(new Color(20, 20, 20));
-            dialog.setSize(300, 150);
+        JDialog dialog = new JDialog(mainFrame, "Settings", true);
+        dialog.setLayout(new GridBagLayout());
+        dialog.setSize(320, 260);
+        dialog.getContentPane().setBackground(new Color(15, 15, 25));
 
-            JLabel label = new JLabel("Settings do të shtohen së shpejti!");
-            label.setForeground(Color.WHITE);
-            dialog.add(label);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx   = 0;
+        gbc.fill    = GridBagConstraints.HORIZONTAL;
+        gbc.insets  = new Insets(10, 20, 10, 20);
 
-            dialog.setLocationRelativeTo(mainFrame);
-            dialog.setVisible(true);
+        // ── Titulli ───────────────────────────────────────────
+        JLabel title = new JLabel("⚙  SETTINGS");
+        title.setForeground(new Color(0, 200, 255));
+        title.setFont(new Font("Monospaced", Font.BOLD, 16));
+        title.setHorizontalAlignment(SwingConstants.CENTER);
+        gbc.gridy = 0;
+        dialog.add(title, gbc);
 
+        // ── Fullscreen checkbox ────────────────────────────────
+        JCheckBox fullscreenBox = new JCheckBox("🖥  Fullscreen Mode");
+        styleCheckbox(fullscreenBox);
+        fullscreenBox.setSelected(mainFrame.isFullscreen());
+        gbc.gridy = 1;
+        dialog.add(fullscreenBox, gbc);
+
+        // ── Music checkbox ─────────────────────────────────────
+        JCheckBox musicBox = new JCheckBox("🎵  Background Music");
+        styleCheckbox(musicBox);
+        musicBox.setSelected(GamePanel.musicEnabled);
+        gbc.gridy = 2;
+        dialog.add(musicBox, gbc);
+
+        // ── SFX checkbox ───────────────────────────────────────
+        JCheckBox sfxBox = new JCheckBox("🔊  Sound Effects");
+        styleCheckbox(sfxBox);
+        sfxBox.setSelected(GamePanel.sfxEnabled);
+        gbc.gridy = 3;
+        dialog.add(sfxBox, gbc);
+
+        // ── Butoni Apply ───────────────────────────────────────
+        JButton applyBtn = new JButton("✔  APPLY");
+        applyBtn.setFont(new Font("Monospaced", Font.BOLD, 14));
+        applyBtn.setForeground(Color.WHITE);
+        applyBtn.setBackground(new Color(0, 120, 160));
+        applyBtn.setFocusPainted(false);
+        applyBtn.setBorderPainted(false);
+        applyBtn.addActionListener(e -> {
+            // Fullscreen
+            if (fullscreenBox.isSelected() != mainFrame.isFullscreen()) {
+                mainFrame.toggleFullscreen();
+            }
+            // Audio flags — nesër do i lexojë sistemi i audio
+            GamePanel.musicEnabled = musicBox.isSelected();
+            GamePanel.sfxEnabled   = sfxBox.isSelected();
+
+            dialog.dispose();
+        });
+        gbc.gridy = 4;
+        dialog.add(applyBtn, gbc);
+
+        dialog.setLocationRelativeTo(mainFrame);
+        dialog.setVisible(true);
     }
     @Override
     protected void paintComponent(Graphics g) {

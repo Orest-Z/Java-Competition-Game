@@ -47,6 +47,10 @@ public class GamePanel extends JPanel implements KeyListener {
     private boolean movingRight = false;
 
 
+    // Keto 2 variabla do na duhen per diten e neserme pasi te shtoj dhe muziken dhe sound effects
+    public static boolean musicEnabled  = true;
+    public static boolean sfxEnabled    = true;
+
     //Boolean per te percaktuar nqfs loja ka mbaruar ose jo
     private boolean gameOver = false;
 
