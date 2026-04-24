@@ -23,6 +23,14 @@ public class MainFrame extends JFrame {
     // Deklarojme klasen AudioManager
     private AudioManager audioManager;
 
+    // Ekonomia dhe progresi
+    public static int highScore   = 0;
+    public static int totalMoney  = 0;
+
+    // Zgjedhjet e Shop
+    public static String currentMap  = "DEFAULT";  // "DEFAULT", "SNOW", "DESERT"
+    public static String currentSkin = "NORMAL";   // "NORMAL", "POLICE", "MOTO"
+
     public boolean isFullscreen() { return isFullscreen; }
 
     public void toggleFullscreen() {
@@ -44,6 +52,11 @@ public class MainFrame extends JFrame {
     public AudioManager getAudioManager() { return audioManager; }
 
     public MainFrame() {
+        //Ngarkojme te dhenat nga skedari me load
+        int[] saveData = SaveManager.load();
+        highScore  = saveData[0];
+        totalMoney = saveData[1];
+
         setTitle("Neon Highway");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setResizable(false);
@@ -71,6 +84,13 @@ public class MainFrame extends JFrame {
         menuWrapper.add(menuPanel, new GridBagConstraints());
         mainContainer.add(menuWrapper, MENU);
         mainContainer.add(gameWrapper, GAME);
+
+        //Inicializohet nje objekt i panelit te dyqanit qe u shtua
+        ShopPanel shopPanel = new ShopPanel(this);
+        JPanel shopWrapper = new JPanel(new GridBagLayout());
+        shopWrapper.setBackground(Color.BLACK);
+        shopWrapper.add(shopPanel, new GridBagConstraints());
+        mainContainer.add(shopWrapper, "SHOP");
 
         add(mainContainer);
         addWindowListener(new java.awt.event.WindowAdapter() {

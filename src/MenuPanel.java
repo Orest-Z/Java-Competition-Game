@@ -42,8 +42,19 @@ public class MenuPanel extends JPanel {
         });
         add(playBtn, gbc);
 
+        // SHOP — gridy = 1 (midis PLAY dhe SETTINGS)
+        gbc.gridy = 1;
+        JButton shopBtn = createStyledButton("🛒  SHOP");
+        shopBtn.addActionListener(e -> {
+            audioManager.playSFX("assets/click.wav");
+            mainFrame.switchTo("SHOP");
+        });
+        add(shopBtn, gbc);
+
+
+
         // ── Settings button ─────────────────────────────────────────────────
-        gbc.gridy = 1;             // row 1
+        gbc.gridy = 2;             // row 1
         JButton settingsBtn = createStyledButton("⚙  SETTINGS");
         settingsBtn.addActionListener(e -> {
             audioManager.playSFX("assets/click.wav");//Luhet soundi i klikimit
@@ -52,7 +63,7 @@ public class MenuPanel extends JPanel {
         add(settingsBtn, gbc);
 
         // ── Exit button ──────────────────────────────────────────────────────
-        gbc.gridy = 2;             // row 2
+        gbc.gridy = 3;             // row 2
         JButton exitBtn = createStyledButton("✕  EXIT");
         exitBtn.addActionListener(e -> {
             audioManager.playSFX("assets/click.wav");

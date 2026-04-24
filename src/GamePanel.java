@@ -276,7 +276,11 @@ public class GamePanel extends JPanel implements KeyListener {
         g2.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL,    RenderingHints.VALUE_STROKE_PURE);
 
         drawRoad(g2);
-        drawPlayerCar(g2);
+        switch (MainFrame.currentSkin) {
+            case "POLICE" -> drawPoliceCar(g2);
+            case "MOTO"   -> drawMotorcycle(g2);
+            default       -> drawPlayerCar(g2);
+        }
         drawEnemies(g2);
         drawHUD(g2);
     }
@@ -284,23 +288,44 @@ public class GamePanel extends JPanel implements KeyListener {
     /** Draws the road surface, kerb strips, and scrolling lane markers. */
     private void drawRoad(Graphics2D g2) {
         // Road surface
-        g2.setColor(COLOR_ROAD);
+
+
+            // Ngjyrat ndryshojnë bazuar në currentMap
+            Color grassColor = switch (MainFrame.currentMap) {
+                case "SNOW"   -> new Color(220, 235, 245);  // bardhë-gri si dëborë
+                case "DESERT" -> new Color(194, 154, 89);   // kafe-verdhë si rërë
+                default       -> COLOR_GRASS;               // jeshil normal
+            };
+
+            Color roadColor = switch (MainFrame.currentMap) {
+                case "SNOW"   -> new Color(180, 195, 210);  // gri-blu si asfalt i ngrirë
+                case "DESERT" -> new Color(160, 120, 70);   // kafe e errët si dhe
+                default       -> COLOR_ROAD;
+            };
+
+            Color kerbColor1 = switch (MainFrame.currentMap) {
+                case "SNOW"   -> new Color(180, 210, 230);  // blu e zbehtë
+                case "DESERT" -> new Color(210, 170, 90);   // portokalli i zbehtë
+                default       -> Color.RED;
+            };
+
+        // Vizato terrain-in (grass/snow/desert) — mbush gjithë panelit
+        g2.setColor(grassColor);
+        g2.fillRect(0, 0, PANEL_WIDTH, PANEL_HEIGHT);
+
+// Vizato rrugën sipër terrain-it
+        g2.setColor(roadColor);
         g2.fillRect(ROAD_LEFT, 0, ROAD_RIGHT - ROAD_LEFT, PANEL_HEIGHT);
 
-        // Kerb stripes (left)
-        drawKerb(g2, ROAD_LEFT - 12, 12);
-        // Kerb stripes (right)
-        drawKerb(g2, ROAD_RIGHT, 12);
+// Vijat e kurbeve anash
+        drawKerb(g2, ROAD_LEFT - 12, 12, kerbColor1);
+        drawKerb(g2, ROAD_RIGHT,     12, kerbColor1);
 
-
+// Vijat e korsive
         g2.setColor(COLOR_LANE_MARK);
-
-        //Konfigurojmë penelin që të jetë me ndërprerje (dashed)
-
         float[] dashPattern = {30f, 30f};
         g2.setStroke(new BasicStroke(3f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER,
-                10f, dashPattern, laneMarkerOffset));    // laneMarkerOffset ben qe vija te "levize"
-                                                                    //.CAP_BUTT BUTT do te thote që vija pritet drejt
+                10f, dashPattern, laneMarkerOffset));
 
         //Ndertimi i 4 korsive  me ane te nje cikli for(update day2)
         int totalLanes = 4;
@@ -315,12 +340,12 @@ public class GamePanel extends JPanel implements KeyListener {
     }
 
     /** Draws alternating red/white kerb blocks along a vertical strip. */
-    private void drawKerb(Graphics2D g2, int x, int width) {
+    private void drawKerb(Graphics2D g2, int x, int width, Color accentColor) {
         int blockHeight = 24;
         for (int y = -blockHeight; y < PANEL_HEIGHT + blockHeight; y += blockHeight) {
             int adjustedY = y + (laneMarkerOffset % blockHeight);
-            boolean red = ((adjustedY / blockHeight) % 2 == 0);
-            g2.setColor(red ? Color.RED : Color.WHITE);
+            boolean alternate = ((adjustedY / blockHeight) % 2 == 0);
+            g2.setColor(alternate ? accentColor : Color.WHITE);
             g2.fillRect(x, adjustedY, width, blockHeight);
         }
     }
@@ -379,6 +404,39 @@ public class GamePanel extends JPanel implements KeyListener {
         g2.drawRoundRect(x, y, w, h, 10, 10);
         g2.setStroke(new BasicStroke(1f));
     }
+    //Shtova nje skin Makine Policie
+    private void drawPoliceCar(Graphics2D g2) {
+        // Vizato makinën normale fillimisht
+        drawPlayerCar(g2);
+
+        // Dritat pulsante — alternojnë çdo 15 frame
+        boolean showRed = (laneMarkerOffset / 15) % 2 == 0;
+
+        // Drita e majtë
+        g2.setColor(showRed ? Color.RED : Color.BLUE);
+        g2.fillRect(carX + 4, carY + 8, 12, 6);
+
+        // Drita e djathtë
+        g2.setColor(showRed ? Color.BLUE : Color.RED);
+        g2.fillRect(carX + CAR_WIDTH - 16, carY + 8, 12, 6);
+    }
+
+    //Shtova nje skin per motorr
+    private void drawMotorcycle(Graphics2D g2) {
+        int motoW = 20;  // gjysma e gjerësisë
+        int x = carX + (CAR_WIDTH - motoW) / 2;  // centrohet
+        int y = carY;
+        int h = CAR_HEIGHT;
+
+        // Trupi i ngushtë
+        g2.setColor(new Color(60, 60, 60));
+        g2.fillRoundRect(x, y, motoW, h, 8, 8);
+
+        // Dritaret
+        g2.setColor(new Color(160, 220, 255, 180));
+        g2.fillRoundRect(x + 3, y + 10, motoW - 6, 12, 4, 4);
+    }
+
     //Ndryshova metoden e vizatimit te enemy cars duke ja lene ate klases me vete tek EnemyCar.java
     private void drawEnemies(Graphics2D g2) {
         for (EnemyCar enemy : enemies) {
@@ -416,9 +474,16 @@ public class GamePanel extends JPanel implements KeyListener {
 
             for (EnemyCar enemy : enemies) {
                 if (playerHitbox.intersects(enemy.hitbox)) {
-                    audioManager.playSFX("assets/crashSFX.wav");   //Luhet crash soundfx
                     gameOver = true;
                     gameTimer.stop();
+                    //Ruajme monedhat ne skedar
+                    MainFrame.totalMoney += score / 10;  // çdo 10 pikë = 1 monedhë
+                    if (score > MainFrame.highScore) {
+                        MainFrame.highScore = score;
+                    }
+                    SaveManager.save(MainFrame.highScore, MainFrame.totalMoney);
+                    audioManager.stopMusic();
+                    audioManager.playSFX("assets/crashSFX.wav");
                     restartButton.setVisible(true);
                     menuButton.setVisible(true);
                 }
