@@ -36,19 +36,28 @@ public class MenuPanel extends JPanel {
         // ── Play button ─────────────────────────────────────────────────────
         gbc.gridy = 0;             // row 0
         JButton playBtn = createStyledButton("▶  PLAY");
-        playBtn.addActionListener(e -> mainFrame.switchTo(MainFrame.GAME));
+        playBtn.addActionListener(e -> {
+            audioManager.playSFX("assets/click.wav");
+            mainFrame.switchTo(MainFrame.GAME);
+        });
         add(playBtn, gbc);
 
         // ── Settings button ─────────────────────────────────────────────────
         gbc.gridy = 1;             // row 1
         JButton settingsBtn = createStyledButton("⚙  SETTINGS");
-        settingsBtn.addActionListener(e -> openSettings());
+        settingsBtn.addActionListener(e -> {
+            audioManager.playSFX("assets/click.wav");//Luhet soundi i klikimit
+            openSettings();
+        });
         add(settingsBtn, gbc);
 
         // ── Exit button ──────────────────────────────────────────────────────
         gbc.gridy = 2;             // row 2
         JButton exitBtn = createStyledButton("✕  EXIT");
-        exitBtn.addActionListener(e -> System.exit(0));
+        exitBtn.addActionListener(e -> {
+            audioManager.playSFX("assets/click.wav");
+            System.exit(0);
+        });
         add(exitBtn, gbc);
     }
 
@@ -151,6 +160,8 @@ public class MenuPanel extends JPanel {
         applyBtn.setFocusPainted(false);
         applyBtn.setBorderPainted(false);
         applyBtn.addActionListener(e -> {
+            //Luhet nje sound i shkurter klikimi
+            audioManager.playSFX("assets/click.wav");
             // Fullscreen
             if (fullscreenBox.isSelected() != mainFrame.isFullscreen()) {
                 mainFrame.toggleFullscreen();

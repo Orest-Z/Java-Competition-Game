@@ -111,7 +111,10 @@ public class GamePanel extends JPanel implements KeyListener {
         restartButton.setBorderPainted(false);
         restartButton.setVisible(false);  // i fshehur në fillim
 
-        restartButton.addActionListener(e -> restartGame());
+        restartButton.addActionListener(e ->{
+            audioManager.playSFX("assets/click.wav");
+            restartGame();
+        });
 
 // Pozicionoje në qendër të panelit
         setLayout(null);  // layout manual
@@ -136,6 +139,8 @@ public class GamePanel extends JPanel implements KeyListener {
         menuButton.setVisible(false);
 
         menuButton.addActionListener(e -> {
+            //Kur klikohet luhet soundfx i click.wav
+            audioManager.playSFX("assets/click.wav");
             // Rivendos gjendjen e lojës
             gameOver   = false;
             score      = 0;
@@ -148,8 +153,6 @@ public class GamePanel extends JPanel implements KeyListener {
             // Fshih butonat
             restartButton.setVisible(false);
             menuButton.setVisible(false);
-            audioManager.playMusic();
-
             // Kthehu te menu
             mainFrame.switchTo(MainFrame.MENU);
         });
