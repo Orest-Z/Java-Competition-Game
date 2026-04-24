@@ -159,6 +159,12 @@ public class MenuPanel extends JPanel {
             GamePanel.musicEnabled = musicBox.isSelected();
             GamePanel.sfxEnabled   = sfxBox.isSelected();
 
+            if(GamePanel.musicEnabled) {
+                audioManager.playMusic();
+            }
+            else if (!GamePanel.musicEnabled) {
+                audioManager.stopMusic();
+            }
             dialog.dispose();
         });
         gbc.gridy = 4;
