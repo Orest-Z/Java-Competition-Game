@@ -1,17 +1,20 @@
 import java.awt.*;
 import javax.swing.*;
-
+import javax.sound.*;
 
 public class MenuPanel extends JPanel {
 
     private final MainFrame mainFrame;
     private Image backgroundImage;
 
+    private final AudioManager audioManager;
+
     public MenuPanel(MainFrame mainFrame) {
         this.mainFrame = mainFrame;
+        this.audioManager = mainFrame.getAudioManager();  // ← shto
 
         // Load image from project root (place the .jpg next to your .java files)
-        backgroundImage = new ImageIcon("resources/backgroundMENU.png").getImage();
+        backgroundImage = new ImageIcon("assets/backgroundMENU.png").getImage();
         setPreferredSize(new Dimension(480, 600));
         setLayout(new GridBagLayout());  // entire panel is one grid
 

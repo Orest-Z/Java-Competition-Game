@@ -62,6 +62,9 @@ public class GamePanel extends JPanel implements KeyListener {
     //Butoni per tu kthyer ne menune kryesore
     private JButton menuButton;
 
+    //Deklarojme variablen per aksesimin e AudioManager per muziken dhe sound effect crash
+    private AudioManager audioManager;
+
     // ── Road lane-marker animation ───────────────────────────────────────────
     private int laneMarkerOffset = 0;   // scrolls downward each tick
 
@@ -96,6 +99,8 @@ public class GamePanel extends JPanel implements KeyListener {
         setBackground(COLOR_GRASS);// Required to receive key events;
         setFocusable(true);
         addKeyListener(this);
+        //Shtojme audioManager
+        this.audioManager = mainFrame.getAudioManager();
 
         // Krijo butonin por fshihe — shfaqet vetëm pas Game Over
         restartButton = new JButton("↺  RESTART");
@@ -143,6 +148,7 @@ public class GamePanel extends JPanel implements KeyListener {
             // Fshih butonat
             restartButton.setVisible(false);
             menuButton.setVisible(false);
+            audioManager.playMusic();
 
             // Kthehu te menu
             mainFrame.switchTo(MainFrame.MENU);
@@ -172,6 +178,7 @@ public class GamePanel extends JPanel implements KeyListener {
         requestFocusInWindow();
         if (!gameTimer.isRunning()) {
             gameTimer.start();
+            audioManager.playMusic();//Muzika nis bashke me lojen
         }
     }
 
@@ -195,6 +202,9 @@ public class GamePanel extends JPanel implements KeyListener {
         score       = 0;
         level       = 1;
         enemySpeed  = 4;
+
+        //Muzika rinis kur shkon ne Menu
+        audioManager.playMusic();
     }
 
     // ── Game logic update ─────────────────────────────────────────────────────
@@ -403,10 +413,11 @@ public class GamePanel extends JPanel implements KeyListener {
 
             for (EnemyCar enemy : enemies) {
                 if (playerHitbox.intersects(enemy.hitbox)) {
+                    audioManager.playSFX("assets/crashSFX.wav");   //Luhet crash soundfx
                     gameOver = true;
                     gameTimer.stop();
                     restartButton.setVisible(true);
-                    menuButton.setVisible(true);  // ← shto këtë
+                    menuButton.setVisible(true);
                 }
             }
         }

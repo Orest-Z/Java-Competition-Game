@@ -20,6 +20,9 @@ public class MainFrame extends JFrame {
     //Metoda per ta kthyer lojen ne full screen
     private boolean isFullscreen = false;
 
+    // Deklarojme klasen AudioManager
+    private AudioManager audioManager;
+
     public boolean isFullscreen() { return isFullscreen; }
 
     public void toggleFullscreen() {
@@ -37,10 +40,20 @@ public class MainFrame extends JFrame {
             setLocationRelativeTo(null);
         }
     }
+    //Getters per audion qe te aksesohet nga panelet e tjera
+    public AudioManager getAudioManager() { return audioManager; }
+
     public MainFrame() {
         setTitle("Neon Highway");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setResizable(false);
+
+
+        //Bejme krijojme nje objekt te klases audio manager
+        audioManager = new AudioManager();
+        //Bejme load muziken tone specifike ne folderin ku ndodhet
+        audioManager.loadMusic("assets/gameMusic.wav");
+        audioManager.playMusic();
 
         cardLayout    = new CardLayout();
         mainContainer = new JPanel(cardLayout);
@@ -60,6 +73,12 @@ public class MainFrame extends JFrame {
         mainContainer.add(gameWrapper, GAME);
 
         add(mainContainer);
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                audioManager.cleanup();
+            }
+        });
         pack();
         setLocationRelativeTo(null);
     }
