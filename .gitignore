@@ -28,5 +28,7 @@ bin/
 
 *.iml
 
+save.txt
+
 ### Mac OS ###
 .DS_Store
