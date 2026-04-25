@@ -493,18 +493,53 @@ public class GamePanel extends JPanel implements KeyListener {
 
     //Shtova nje skin per motorr
     private void drawMotorcycle(Graphics2D g2) {
-        int motoW = 20;  // gjysma e gjerësisë
-        int x = carX + (CAR_WIDTH - motoW) / 2;  // centrohet
+        int motoW = 18;  // Trupi kryesor është më i ngushtë se makina
+        int x = carX + (CAR_WIDTH - motoW) / 2;
         int y = carY;
         int h = CAR_HEIGHT;
 
-        // Trupi i ngushtë
-        g2.setColor(new Color(60, 60, 60));
-        g2.fillRoundRect(x, y, motoW, h, 8, 8);
+        // 1. Rrotat (Para dhe Mbrapa) - Pozicionohen në qendër të aksit gjatësor
+        g2.setColor(new Color(30, 30, 30));
+        // Rrota e përparme
+        g2.fillRoundRect(x + (motoW/2) - 3, y + 2, 6, 15, 4, 4);
+        // Rrota e pasme
+        g2.fillRoundRect(x + (motoW/2) - 3, y + h - 18, 6, 16, 4, 4);
 
-        // Dritaret
-        g2.setColor(new Color(160, 220, 255, 180));
-        g2.fillRoundRect(x + 3, y + 10, motoW - 6, 12, 4, 4);
+        // 2. Timoni (Handlebars)
+        g2.setColor(new Color(50, 50, 50));
+        g2.setStroke(new BasicStroke(3f));
+        g2.drawLine(x - 4, y + 18, x + motoW + 4, y + 18); // Vija horizontale e timonit
+        // Dorezat e timonit
+        g2.fillRect(x - 6, y + 16, 4, 6);
+        g2.fillRect(x + motoW + 2, y + 16, 4, 6);
+
+        // 3. Trupi kryesor / Shasia
+        g2.setColor(new Color(40, 40, 40));
+        g2.fillRoundRect(x, y + 15, motoW, h - 30, 10, 10);
+
+        // 4. Serbatori (Fuel Tank) - Pjesa më e gjerë dhe me ngjyrë
+        g2.setColor(new Color(200, 20, 20)); // Mund ta bësh edhe sipas një variable ngjyre
+        g2.fillOval(x + 2, y + 22, motoW - 4, 20);
+
+        // 5. Sedilja (Seat)
+        g2.setColor(new Color(20, 20, 20));
+        g2.fillRoundRect(x + 3, y + 44, motoW - 6, 15, 5, 5);
+
+        // 6. Drita e përparme (Headlight)
+        g2.setColor(new Color(255, 255, 200, 220));
+        g2.fillOval(x + (motoW/2) - 4, y + 5, 8, 8);
+
+        // 7. Drita e pasme (Brake light)
+        g2.setColor(new Color(255, 0, 0));
+        g2.fillRect(x + (motoW/2) - 4, y + h - 6, 8, 4);
+
+        // 8. Pasqyrat (Mirrors)
+        g2.setColor(new Color(80, 80, 80));
+        g2.fillOval(x - 8, y + 12, 5, 3);
+        g2.fillOval(x + motoW + 3, y + 12, 5, 3);
+
+        // Reset stroke
+        g2.setStroke(new BasicStroke(1f));
     }
 
     //Ndryshova metoden e vizatimit te enemy cars duke ja lene ate klases me vete tek EnemyCar.java
@@ -597,8 +632,6 @@ public class GamePanel extends JPanel implements KeyListener {
                     triggerShake();
                     spawnParticles(carX, carY);
 
-                    // Audio
-                    audioManager.stopMusic();
                     audioManager.playSFX("assets/crashSFX.wav");
 
                     // Ekonomia
