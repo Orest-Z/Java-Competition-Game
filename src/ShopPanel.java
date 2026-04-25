@@ -4,14 +4,29 @@ import java.awt.*;
 public class ShopPanel extends JPanel {
     private final MainFrame mainFrame;
     private JLabel moneyLabel;
+    private Image backgroundImage; //Variabli per imazhin
 
     public ShopPanel(MainFrame mainFrame) {
         this.mainFrame = mainFrame;
+        //Ngarkojme imazhin per background
+        backgroundImage = new ImageIcon("assets/backgroundShop.png").getImage();
         setPreferredSize(new Dimension(480, 600));
         setBackground(new Color(10, 10, 20));
         setLayout(new GridBagLayout());
         buildUI();
     }
+    // 3. Metoda që vizaton imazhin përpara se të vizatohen butonat
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        if (backgroundImage != null) {
+            // Vizaton imazhin në të gjithë përmasën e panelit
+            g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+
+            // që butonat dhe teksti të lexohen më mirë
+            g.setColor(new Color(0, 0, 0, 120)); // E zezë me transparencë
+            g.fillRect(0, 0, getWidth(), getHeight());
+        }}
 
     private void buildUI() {
         GridBagConstraints gbc = new GridBagConstraints();

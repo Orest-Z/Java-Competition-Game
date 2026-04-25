@@ -38,6 +38,7 @@ public class AudioManager {
         if (musicClip == null) return;
         if (!GamePanel.musicEnabled) return;  // respekton checkbox-in
 
+        if (musicClip.isRunning()) return;//Nqs muzika eshte on mos bej asgje
         musicClip.setFramePosition(0);               // fillo nga fillimi
         musicClip.loop(Clip.LOOP_CONTINUOUSLY);      // ← loop i pafund
         musicClip.start();
