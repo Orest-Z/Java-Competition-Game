@@ -57,6 +57,11 @@ public class ShopPanel extends JPanel {
         add(backBtn, gbc);
     }
 
+    //Metoda per te bere refrash labelin e totalit te monedhave
+    public void refresh() {
+        moneyLabel.setText("💰  " + MainFrame.totalMoney + " coins");
+    }
+
     private void addSectionLabel(String text, GridBagConstraints gbc, int row) {
         JLabel lbl = new JLabel(text, SwingConstants.CENTER);
         lbl.setFont(new Font("Monospaced", Font.BOLD, 13));

@@ -13,6 +13,8 @@ public class MainFrame extends JFrame {
     // The single container that holds ALL screens
     private JPanel mainContainer;
 
+    private ShopPanel shopPanel;
+
     // String keys — CardLayout uses these to identify which card to show
     public static final String MENU  = "MENU";
     public static final String GAME  = "GAME";
@@ -86,7 +88,7 @@ public class MainFrame extends JFrame {
         mainContainer.add(gameWrapper, GAME);
 
         //Inicializohet nje objekt i panelit te dyqanit qe u shtua
-        ShopPanel shopPanel = new ShopPanel(this);
+        shopPanel = new ShopPanel(this);
         JPanel shopWrapper = new JPanel(new GridBagLayout());
         shopWrapper.setBackground(Color.BLACK);
         shopWrapper.add(shopPanel, new GridBagConstraints());
@@ -112,6 +114,14 @@ public class MainFrame extends JFrame {
                 gamePanel.requestFocusInWindow();
                 gamePanel.startGame();  // ← thirr direkt, mos u mbështet në ComponentListener
             });
+        }
+        //Nqs klikohet menu luhet muzika by default
+        if (key.equals(MENU)) {
+            audioManager.playMusic();  // ← shto këtë
+        }
+        //Nqs klikohet shop behet refresh paneli
+        if (key.equals("SHOP")) {
+            shopPanel.refresh();  // ← rifresohet çdo herë që hapet
         }
     }
 
