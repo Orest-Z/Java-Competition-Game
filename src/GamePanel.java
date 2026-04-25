@@ -191,6 +191,7 @@ public class GamePanel extends JPanel implements KeyListener {
 
     /** Call after the window is visible so the panel can receive focus. */
     public void startGame() {
+        crashPlayed = false;    //Sa here ristartojme lojen crashPLayed kthehet False. Ky ishte buggu
         requestFocusInWindow();
         if (!gameTimer.isRunning()) {
             gameTimer.start();
