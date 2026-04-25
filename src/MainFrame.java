@@ -36,6 +36,10 @@ public class MainFrame extends JFrame {
     public boolean isFullscreen() { return isFullscreen; }
 
     public void toggleFullscreen() {
+        //Rregullova nje bug ku pas klikimit te butonit apply makina del posht enemy cars
+        // dhe loja nuk perfundonte kurre
+        mainContainer.revalidate();
+        mainContainer.repaint();
         isFullscreen = !isFullscreen;
         dispose();
         setUndecorated(isFullscreen);
@@ -111,6 +115,7 @@ public class MainFrame extends JFrame {
 
         if (key.equals(GAME)) {
             SwingUtilities.invokeLater(() -> {
+                gamePanel.revalidate();
                 gamePanel.requestFocusInWindow();
                 gamePanel.startGame();  // ← thirr direkt, mos u mbështet në ComponentListener
             });

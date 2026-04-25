@@ -235,20 +235,32 @@ public class GamePanel extends JPanel implements KeyListener {
 
         crashPlayed = false;  // ← mund të crash-ohet serisht
 
-        // Rivendos pozicionin e lojtarit në qendër
-        carX = (ROAD_LEFT + ROAD_RIGHT) / 2 - CAR_WIDTH / 2;
 
         // Fshih butonin dhe rinis loop-in
-        restartButton.setVisible(false);
-        menuButton.setVisible(false); // Rregullova nje bug qe butoni Menu ngelte ne ekran pasi klikohej restart
-        gameTimer.start();
+       gameTimer.start();
         requestFocusInWindow();
 
         //Behet reset niveli dhe piket
         score       = 0;
         level       = 1;
         enemySpeed  = 4;
+        //Reset particles dhe shake-ut
+        scorePulse  = 0;
+        particles.clear();
+        shakeDuration = 0;
+        shakeX = 0;
+        shakeY = 0;
 
+        // Rivendos pozicionin e lojtarit në qendër
+        carX = (ROAD_LEFT + ROAD_RIGHT) / 2 - CAR_WIDTH / 2;
+
+        restartButton.setVisible(false);
+        menuButton.setVisible(false); // Rregullova nje bug qe butoni Menu ngelte ne ekran pasi klikohej restart
+
+        requestFocusInWindow();
+        if (!gameTimer.isRunning()) {
+            gameTimer.start();
+        }
         //Muzika rinis kur shkon ne Menu
         audioManager.playMusic();
     }
@@ -256,41 +268,17 @@ public class GamePanel extends JPanel implements KeyListener {
     // ── Game logic update ─────────────────────────────────────────────────────
 
     private void update() {
-        // Move car according to held keys
-        if (movingLeft) carX -= MOVE_SPEED;
-        if (movingRight) carX += MOVE_SPEED;
 
-        // Clamp car so it stays on the road (accounting for car width)
-        carX = Math.max(ROAD_LEFT, Math.min(carX, ROAD_RIGHT - CAR_WIDTH));
-
-
-
-        // [2] Spawning — çdo 40 frame shto një makinë të re
-        spawnTimer++;
-        if (spawnTimer >= 40) {
-            spawnTimer = 0;
-
-            int totalLanes = 4;
-            int laneWidth = (ROAD_RIGHT - ROAD_LEFT) / totalLanes;
-            int randomLane = (int) (Math.random() * totalLanes);
-
-            // Formula per spawnin e makinave te tjera
-            int enemyX = ROAD_LEFT + (randomLane * laneWidth) + (laneWidth / 2) - (CAR_WIDTH / 2);
-            int enemyY = -CAR_HEIGHT;        // ku duhet të shfaqet — sipër ekranit
-
-            //update qe zgjidhet nje ngjyra random per makinat enemy sa here bejne spawn ne pozicione te ndryshme
-            Color randomColor = ENEMY_COLORS[(int)(Math.random() * ENEMY_COLORS.length)];
-            enemies.add(new EnemyCar(enemyX, enemyY, enemySpeed, randomColor));        }
-
-        Iterator<EnemyCar> it = enemies.iterator();
-        while (it.hasNext()) {
-            EnemyCar enemy = it.next();
-            enemy.update();
-            if (enemy.y > PANEL_HEIGHT) {   // doli nga ekrani
-                it.remove();                // ← e sigurt për heqje gjatë loop-it
-            }
+        // ── Efektet vizuale — vazhdojnë edhe pas gameOver ──
+        if (shakeDuration > 0) {
+            shakeDuration--;
+            shakeX = (int)(Math.random() * 10) - 5;
+            shakeY = (int)(Math.random() * 10) - 5;
+        } else {
+            shakeX = 0;
+            shakeY = 0;
         }
-        //Iteratori per pjesen e particles qe shtuam
+
         Iterator<Particle> pit = particles.iterator();
         while (pit.hasNext()) {
             Particle p = pit.next();
@@ -298,25 +286,44 @@ public class GamePanel extends JPanel implements KeyListener {
             if (p.isDead()) pit.remove();
         }
 
+        // ── Ndalon logjikën nëse loja mbaroi ──
+        if (gameOver) return;
+
+        // ── Logjika e lojës ──
+        if (movingLeft)  carX -= MOVE_SPEED;
+        if (movingRight) carX += MOVE_SPEED;
+        carX = Math.max(ROAD_LEFT, Math.min(carX, ROAD_RIGHT - CAR_WIDTH));
+
+        spawnTimer++;
+        if (spawnTimer >= 40) {
+            spawnTimer = 0;
+            int totalLanes = 4;
+            int laneWidth  = (ROAD_RIGHT - ROAD_LEFT) / totalLanes;
+            int randomLane = (int)(Math.random() * totalLanes);
+            int enemyX = ROAD_LEFT + (randomLane * laneWidth) + (laneWidth / 2) - (CAR_WIDTH / 2);
+            Color randomColor = ENEMY_COLORS[(int)(Math.random() * ENEMY_COLORS.length)];
+            enemies.add(new EnemyCar(enemyX, -CAR_HEIGHT, enemySpeed, randomColor));
+        }
+
+        Iterator<EnemyCar> it = enemies.iterator();
+        while (it.hasNext()) {
+            EnemyCar enemy = it.next();
+            enemy.update();
+            if (enemy.y > PANEL_HEIGHT) it.remove();
+        }
+
         checkCollisions();
 
-        // Scroll lane markers downward to create a sense of forward motion
         laneMarkerOffset = (laneMarkerOffset + 4) % 60;
-        // Score rritet çdo frame që jeton
         score++;
-        //Score behet me pulsues pas cdo high score
-        if (score / 10 > lastScore / 10) {
-            scorePulse = 20;  // pulse për 20 frame
-        }
-        lastScore = score;
 
+        if (score / 10 > lastScore / 10) scorePulse = 20;
+        lastScore = score;
         if (scorePulse > 0) scorePulse--;
 
-        // Çdo 500 pikë, rritet niveli dhe shpejtësia
         if (score % 500 == 0) {
             level++;
-            enemySpeed = Math.min(enemySpeed + 1, 12); // maksimumi 12
-            spawnTimer = Math.max(spawnTimer - 5, 40); // spawn më shpesh, min 40 frame
+            enemySpeed = Math.min(enemySpeed + 1, 12);
         }
     }
 
@@ -516,7 +523,7 @@ public class GamePanel extends JPanel implements KeyListener {
         g2.setColor(new Color(255, 255, 255, 200));
         g2.setFont(new Font("Monospaced", Font.BOLD, 14));
         // Font normal = 14, pulse = deri 22
-        int scoreSize = 14 + (scorePulse > 0 ? (int)(scorePulse * 0.4f) : 0);
+        int scoreSize = 14 + (scorePulse > 0 ? (int) (scorePulse * 0.4f) : 0);
         Color scoreColor = scorePulse > 0
                 ? new Color(255, 215, 0)   // ari kur pulse
                 : new Color(255, 255, 255, 200); // i bardhë normal
@@ -525,7 +532,7 @@ public class GamePanel extends JPanel implements KeyListener {
         g2.setColor(scoreColor);
         g2.drawString("SCORE: " + score, ROAD_LEFT + 8, 24);
 
-// LEVEL mbetet normal
+        // LEVEL mbetet normal
         g2.setFont(new Font("Monospaced", Font.BOLD, 14));
         g2.setColor(new Color(255, 255, 255, 200));
         g2.drawString("LEVEL: " + level, ROAD_RIGHT - 80, 24);
@@ -537,22 +544,8 @@ public class GamePanel extends JPanel implements KeyListener {
             g2.setFont(new Font("Monospaced", Font.BOLD, 36));
             g2.drawString("GAME OVER", 150, PANEL_HEIGHT / 2);
         }
-        if (shakeDuration > 0) {
-            shakeDuration--;
-            shakeX = (int)(Math.random() * 10) - 5;
-            shakeY = (int)(Math.random() * 10) - 5;
-        } else {
-            shakeX = 0;
-            shakeY = 0;
-        }
-
-        Iterator<Particle> pit = particles.iterator();
-        while (pit.hasNext()) {
-            Particle p = pit.next();
-            p.update();
-            if (p.isDead()) pit.remove();
-        }
     }
+
 
     //Ndertova nje klase Particles e cila do perdoret per therrimet e vogla qe ndodhin pas perplasjes
     private static class Particle {
@@ -587,38 +580,40 @@ public class GamePanel extends JPanel implements KeyListener {
     }
 
         private void checkCollisions() {
-            Rectangle playerHitbox = new Rectangle(
-                    carX + 5,           // inset 5px nga e majta
-                    carY + 5,           // inset 5px nga sipër
-                    CAR_WIDTH - 10,     // më i ngushtë se vizuali
-                    CAR_HEIGHT - 10
-            );
-            // Perditeson shake çdo frame
-            if (shakeDuration > 0) {
-                shakeDuration--;
-                shakeX = (int)(Math.random() * 10) - 5;  // -5 deri +5 px
-                shakeY = (int)(Math.random() * 10) - 5;
-            } else {
-                shakeX = 0;
-                shakeY = 0;
-            }
+            int hitW = MainFrame.currentSkin.equals("MOTO") ? 20 : CAR_WIDTH - 10;
+            int hitX = MainFrame.currentSkin.equals("MOTO")
+                    ? carX + (CAR_WIDTH - 20) / 2
+                    : carX + 5;
+
+            Rectangle playerHitbox = new Rectangle(hitX, carY + 5, hitW, CAR_HEIGHT - 10);
 
             for (EnemyCar enemy : enemies) {
                 if (playerHitbox.intersects(enemy.hitbox) && !crashPlayed) {
-                    crashPlayed = true;   // ← bllokон thirrjet e mëpasshme
-                    gameOver = true;
+                    crashPlayed = true;
+                    gameOver    = true;
+
+                    // Efektet ndodhin MENJËHERË
                     triggerShake();
                     spawnParticles(carX, carY);
+
+                    // Audio
                     audioManager.stopMusic();
                     audioManager.playSFX("assets/crashSFX.wav");
+
+                    // Ekonomia
                     MainFrame.totalMoney += score / 10;
                     if (score > MainFrame.highScore) MainFrame.highScore = score;
                     SaveManager.save(MainFrame.highScore, MainFrame.totalMoney);
+
+                    // UI — shfaq butonat menjëherë
                     restartButton.setVisible(true);
                     menuButton.setVisible(true);
+
+                    return;  // ← dil menjëherë, mos kontrollo armiqtë e tjerë
                 }
             }
-    };
+        }
+
     // ── KeyListener ──────────────────────────────────────────────────────────
 
     @Override
