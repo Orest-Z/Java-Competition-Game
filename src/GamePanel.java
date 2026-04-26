@@ -310,18 +310,38 @@ public class GamePanel extends JPanel implements KeyListener {
         spawnTimer++;
         if (spawnTimer >= 40) {
             spawnTimer = 0;
+
             int totalLanes = 4;
             int laneWidth  = (ROAD_RIGHT - ROAD_LEFT) / totalLanes;
-            int randomLane = (int)(Math.random() * totalLanes);
-            int enemyX = ROAD_LEFT + (randomLane * laneWidth) + (laneWidth / 2) - (CAR_WIDTH / 2);
-            Color randomColor = ENEMY_COLORS[(int)(Math.random() * ENEMY_COLORS.length)];
-            enemies.add(new EnemyCar(enemyX, -CAR_HEIGHT, enemySpeed, randomColor));
-        }
 
+            // Zgjedh korsi të ndryshme — shuffle i thjeshtë
+            int[] lanes = {0, 1, 2, 3};
+            for (int i = 3; i > 0; i--) {
+                int j = (int)(Math.random() * (i + 1));
+                int tmp = lanes[i]; lanes[i] = lanes[j]; lanes[j] = tmp;
+            }
+
+            // Gjithmonë spawn 1 makinë
+            int carsToSpawn = 1;
+
+            // Score > 500: 30% mundësi për 2 makina
+            if (score > 500  && Math.random() < 0.30) carsToSpawn = 2;
+
+            // Score > 1500: 20% mundësi shtesë për 3 makina
+            if (score > 1500 && Math.random() < 0.20) carsToSpawn = 3;
+
+            for (int i = 0; i < carsToSpawn; i++) {
+                int enemyX = ROAD_LEFT + (lanes[i] * laneWidth) + (laneWidth / 2) - (CAR_WIDTH / 2);
+                Color randomColor = ENEMY_COLORS[(int)(Math.random() * ENEMY_COLORS.length)];
+                enemies.add(new EnemyCar(enemyX, -CAR_HEIGHT, enemySpeed, randomColor));
+                repaint();
+            }
+
+        }
         Iterator<EnemyCar> it = enemies.iterator();
         while (it.hasNext()) {
             EnemyCar enemy = it.next();
-            enemy.update();
+            enemy.update();    // ← lëviz poshtë
             if (enemy.y > PANEL_HEIGHT) it.remove();
         }
 
@@ -409,7 +429,6 @@ public class GamePanel extends JPanel implements KeyListener {
         g2.fillRect(ROAD_LEFT, 0, ROAD_RIGHT - ROAD_LEFT, PANEL_HEIGHT);
         g2.setPaint(null);
 
-        g2.fillRect(ROAD_LEFT, 0, ROAD_RIGHT - ROAD_LEFT, PANEL_HEIGHT);
 
 // Vijat e kurbeve anash
         drawKerb(g2, ROAD_LEFT - 12, 12, kerbColor1);
@@ -651,9 +670,14 @@ public class GamePanel extends JPanel implements KeyListener {
         g2.setFont(new Font("Monospaced", Font.BOLD, 14));
         // Font normal = 14, pulse = deri 22
         int scoreSize = 14 + (scorePulse > 0 ? (int) (scorePulse * 0.4f) : 0);
-        Color scoreColor = scorePulse > 0
-                ? new Color(255, 215, 0)   // ari kur pulse
-                : new Color(255, 255, 255, 200); // i bardhë normal
+        Color scoreColor;
+        if (score > MainFrame.highScore && score > 0) {
+            scoreColor = new Color(255, 60, 60);   // ← rekord aktiv — e kuqe
+        } else if (scorePulse > 0) {
+            scoreColor = new Color(255, 215, 0);   // ← pulse — ari
+        } else {
+            scoreColor = new Color(255, 255, 255, 200); // ← normal
+        }
 
         g2.setFont(new Font("Monospaced", Font.BOLD, scoreSize));
         g2.setColor(scoreColor);
@@ -689,9 +713,26 @@ public class GamePanel extends JPanel implements KeyListener {
 
         //Nqs mbaron loja shfaqim me ngjyre te kuqe mesazhin game over
         if (gameOver) {
+            g2.setColor(new Color(0, 0, 0, 160));
+            g2.fillRoundRect(100, PANEL_HEIGHT / 2 - 20, 280, 110, 16, 16);
+
+            // Teksti GAME OVER
             g2.setColor(Color.RED);
             g2.setFont(new Font("Monospaced", Font.BOLD, 36));
-            g2.drawString("GAME OVER", 150, PANEL_HEIGHT / 2);
+            g2.drawString("GAME OVER", 118, PANEL_HEIGHT / 2 + 15);
+
+            // Monedhat e fituara
+            int coinsEarned = score / 10;
+            g2.setColor(new Color(255, 215, 0));
+            g2.setFont(new Font("Monospaced", Font.BOLD, 18));
+            g2.drawString("💰 +" + coinsEarned + " monedha", 148, PANEL_HEIGHT / 2 + 45);
+
+            // High score nëse u thye
+            if (score >= MainFrame.highScore) {
+                g2.setColor(new Color(0, 220, 255));
+                g2.setFont(new Font("Monospaced", Font.BOLD, 14));
+                g2.drawString("★ REKORD I RI!", 178, PANEL_HEIGHT / 2 + 70);
+            }
         }
     }
 

@@ -89,7 +89,7 @@ public class ShopPanel extends JPanel {
                                GridBagConstraints gbc, int row) {
         String label = cost > 0 ? text + "  [" + cost + "💵]" : text + "  [FREE]";
         JButton btn = new JButton(label);
-        btn.setFont(new Font("Monospaced", Font.PLAIN, 13));
+        btn.setFont(new Font("SansSerif", Font.BOLD, 16));
         btn.setForeground(Color.WHITE);
         btn.setBackground(new Color(30, 30, 60));
         btn.setFocusPainted(false);
