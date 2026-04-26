@@ -713,26 +713,38 @@ public class GamePanel extends JPanel implements KeyListener {
 
         //Nqs mbaron loja shfaqim me ngjyre te kuqe mesazhin game over
         if (gameOver) {
-            g2.setColor(new Color(0, 0, 0, 160));
-            g2.fillRoundRect(100, PANEL_HEIGHT / 2 - 20, 280, 110, 16, 16);
+            // Box i madh që përfshin gjithçka
+            int boxX = PANEL_WIDTH / 2 - 155;
+            int boxY = PANEL_HEIGHT / 2 - 50;
+            int boxW = 310;
+            int boxH = 230;
 
-            // Teksti GAME OVER
+            // Sfond i errët me border të kuq
+            g2.setColor(new Color(0, 0, 0, 200));
+            g2.fillRoundRect(boxX, boxY, boxW, boxH, 18, 18);
+            g2.setColor(new Color(200, 30, 30));
+            g2.setStroke(new BasicStroke(2.5f));
+            g2.drawRoundRect(boxX, boxY, boxW, boxH, 18, 18);
+            g2.setStroke(new BasicStroke(1f));
+
+            // GAME OVER
             g2.setColor(Color.RED);
-            g2.setFont(new Font("Monospaced", Font.BOLD, 36));
-            g2.drawString("GAME OVER", 118, PANEL_HEIGHT / 2 + 15);
+            g2.setFont(new Font("Monospaced", Font.BOLD, 34));
+            g2.drawString("GAME OVER", boxX + 55, boxY + 35);
 
-            // Monedhat e fituara
+            // Monedhat — me ngjyrë ari dhe font më të qartë
             int coinsEarned = score / 10;
             g2.setColor(new Color(255, 215, 0));
-            g2.setFont(new Font("Monospaced", Font.BOLD, 18));
-            g2.drawString("💰 +" + coinsEarned + " monedha", 148, PANEL_HEIGHT / 2 + 45);
+            g2.setFont(new Font("Monospaced", Font.BOLD, 16));
+            g2.drawString("Fituat: " + coinsEarned + " monedha", boxX + 65, boxY + 62);
 
-            // High score nëse u thye
-            if (score >= MainFrame.highScore) {
+            // High score
+            if (score >= MainFrame.highScore && score > 0) {
                 g2.setColor(new Color(0, 220, 255));
-                g2.setFont(new Font("Monospaced", Font.BOLD, 14));
-                g2.drawString("★ REKORD I RI!", 178, PANEL_HEIGHT / 2 + 70);
+                g2.setFont(new Font("Monospaced", Font.BOLD, 13));
+                g2.drawString("★  REKORD I RI: " + score, boxX + 55, boxY + 82);
             }
+            // Butonat janë pozicionuar me setBounds brenda këtij box-i
         }
     }
 
