@@ -50,14 +50,14 @@ public class ShopPanel extends JPanel {
 
         // ── Seksioni Maps ─────────────────────────────────────
         addSectionLabel("── MAPS ──", gbc, 2);
-        addShopButton("❄  Snow Map",    50, () -> MainFrame.currentMap = "SNOW",    gbc, 3);
-        addShopButton("🏜  Desert Map", 50, () -> MainFrame.currentMap = "DESERT",  gbc, 4);
+        addShopButton("❄  Snow Map",    4000, () -> MainFrame.currentMap = "SNOW",    gbc, 3);
+        addShopButton("🏜  Desert Map", 9000, () -> MainFrame.currentMap = "DESERT",  gbc, 4);
         addShopButton("🏙  Default",     0, () -> MainFrame.currentMap = "DEFAULT", gbc, 5);
 
         // ── Seksioni Skins ────────────────────────────────────
         addSectionLabel("── SKINS ──", gbc, 6);
-        addShopButton("🚔  Police Car",   80, () -> MainFrame.currentSkin = "POLICE", gbc, 7);
-        addShopButton("🏍  Motorcycle",  100, () -> MainFrame.currentSkin = "MOTO",   gbc, 8);
+        addShopButton("🚔  Police Car",   5000, () -> MainFrame.currentSkin = "POLICE", gbc, 7);
+        addShopButton("🏍  Motorcycle",  7000, () -> MainFrame.currentSkin = "MOTO",   gbc, 8);
         addShopButton("🚗  Normal",        0, () -> MainFrame.currentSkin = "NORMAL", gbc, 9);
 
         // ── Butoni BACK ───────────────────────────────────────
