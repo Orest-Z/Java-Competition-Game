@@ -36,6 +36,10 @@ public class GamePanel extends JPanel implements KeyListener {
     private ArrayList<EnemyCar> enemies = new ArrayList<>();
     private int spawnTimer = 0;
 
+    //Variablat per scenery ne krah te rruges
+    private int sceneryOffset1 = 0;  // pemë/ndërtesa — lëvizin ngadalë
+    private int sceneryOffset2 = 0;  // objekte të afërta — lëvizin shpejt
+
 
     //Shtimi per sistemin e pikeve dhe niveleve te lojes(dita 4)
     private int score        = 0;   // rritet çdo frame
@@ -88,7 +92,7 @@ public class GamePanel extends JPanel implements KeyListener {
     private static final Color COLOR_GRASS      = new Color(34,  139, 34);
     private static final Color COLOR_ROAD       = new Color(50,  50,  50);
     private static final Color COLOR_KERB       = new Color(220, 220, 220);
-    private static final Color COLOR_LANE_MARK  = new Color(255, 220, 0);
+    private static final Color COLOR_LANE_MARK = new Color(255, 220, 0, 120);
     private static final Color COLOR_CAR_BODY   = new Color(220, 40,  40);
     private static final Color COLOR_CAR_ROOF   = new Color(180, 30,  30);
     private static final Color COLOR_WINDOW     = new Color(160, 220, 255, 200);
@@ -316,6 +320,8 @@ public class GamePanel extends JPanel implements KeyListener {
         checkCollisions();
 
         laneMarkerOffset = (laneMarkerOffset + 4) % 60;
+        sceneryOffset1 = (sceneryOffset1 + 2) % PANEL_HEIGHT;  // sfond i largët
+        sceneryOffset2 = (sceneryOffset2 + 5) % PANEL_HEIGHT;  // objekte të afërta
         score++;
 
         if (score / 10 > lastScore / 10) scorePulse = 20;
@@ -344,6 +350,7 @@ public class GamePanel extends JPanel implements KeyListener {
         g2.translate(shakeX, shakeY);
 
         drawRoad(g2);
+        drawScenery(g2);
         switch (MainFrame.currentSkin) {
             case "POLICE" -> drawPoliceCar(g2);
             case "MOTO"   -> drawMotorcycle(g2);
@@ -383,8 +390,15 @@ public class GamePanel extends JPanel implements KeyListener {
         g2.setColor(grassColor);
         g2.fillRect(0, 0, PANEL_WIDTH, PANEL_HEIGHT);
 
-// Vizato rrugën sipër terrain-it
-        g2.setColor(roadColor);
+        //Update rruges qe te duket pak me e bukur vizualisht
+        GradientPaint roadGradient = new GradientPaint(
+                ROAD_LEFT,  0, roadColor.darker(),   // majtas — më e errët
+                ROAD_RIGHT, 0, roadColor.brighter()  // djathtas — pak më e ndritshme
+        );
+        g2.setPaint(roadGradient);
+        g2.fillRect(ROAD_LEFT, 0, ROAD_RIGHT - ROAD_LEFT, PANEL_HEIGHT);
+        g2.setPaint(null);
+
         g2.fillRect(ROAD_LEFT, 0, ROAD_RIGHT - ROAD_LEFT, PANEL_HEIGHT);
 
 // Vijat e kurbeve anash
@@ -408,6 +422,34 @@ public class GamePanel extends JPanel implements KeyListener {
         g2.setStroke(new BasicStroke(1f));
 
     }
+
+    //Metoda per vizatimin e pemeve dhe objekteve anesore
+    private void drawScenery(Graphics2D g2) {
+        // Objekte të largëta — majtas rrugës (pemë të vogla)
+        int[] treesX = {10, 15, 8};  // pozicionet X anash
+        for (int i = 0; i < 3; i++) {
+            int y = (sceneryOffset1 + i * 200) % PANEL_HEIGHT;
+            // Trungu
+            g2.setColor(new Color(100, 70, 40));
+            g2.fillRect(treesX[i], y, 6, 20);
+            // Kurora
+            g2.setColor(new Color(30, 120, 30, 180));
+            g2.fillOval(treesX[i] - 8, y - 15, 22, 22);
+        }
+
+        // Objekte të afërta — djathtas (shenja rruge neon)
+        int[] signsX = {450, 455, 448};
+        for (int i = 0; i < 3; i++) {
+            int y = (sceneryOffset2 + i * 220) % PANEL_HEIGHT;
+            // Shtylla
+            g2.setColor(new Color(150, 150, 150));
+            g2.fillRect(signsX[i], y, 4, 30);
+            // Tabela neon
+            g2.setColor(new Color(0, 200, 255, 160));
+            g2.fillRoundRect(signsX[i] - 10, y - 10, 24, 14, 4, 4);
+        }
+    }
+
 
     /** Draws alternating red/white kerb blocks along a vertical strip. */
     private void drawKerb(Graphics2D g2, int x, int width, Color accentColor) {
