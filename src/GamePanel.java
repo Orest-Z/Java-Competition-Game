@@ -40,6 +40,9 @@ public class GamePanel extends JPanel implements KeyListener {
     private int sceneryOffset1 = 0;  // pemë/ndërtesa — lëvizin ngadalë
     private int sceneryOffset2 = 0;  // objekte të afërta — lëvizin shpejt
 
+    //Nje timer qe perdoret per nottification sahere kalon nivelin
+    private int levelUpTimer  = 0;   // sa frame mbetet visible
+    private float levelUpAlpha = 0f; // transparenca
 
     //Shtimi per sistemin e pikeve dhe niveleve te lojes(dita 4)
     private int score        = 0;   // rritet çdo frame
@@ -69,6 +72,9 @@ public class GamePanel extends JPanel implements KeyListener {
 
     //Boolean per te percaktuar nqfs loja ka mbaruar ose jo
     private boolean gameOver = false;
+
+    //Boolean per te percaktuar nqfs loja eshte bere pause
+    private boolean paused = false;
 
     //Variabla qe perdoret per te detektuar nqfs crash sound eshte bere play ose jo
     private boolean crashPlayed = false;
@@ -196,6 +202,7 @@ public class GamePanel extends JPanel implements KeyListener {
     /** Call after the window is visible so the panel can receive focus. */
     public void startGame() {
         crashPlayed = false;    //Sa here ristartojme lojen crashPLayed kthehet False. Ky ishte buggu
+        paused = false;
         requestFocusInWindow();
         if (!gameTimer.isRunning()) {
             gameTimer.start();
@@ -235,6 +242,7 @@ public class GamePanel extends JPanel implements KeyListener {
     private void restartGame() {
         // Rivendos variablat
         gameOver    = false;
+        paused = false;
         spawnTimer  = 0;
         enemies.clear();  // fshi të gjitha makinat armike
 
@@ -319,9 +327,9 @@ public class GamePanel extends JPanel implements KeyListener {
 
         checkCollisions();
 
-        laneMarkerOffset = (laneMarkerOffset + 4) % 60;
-        sceneryOffset1 = (sceneryOffset1 + 2) % PANEL_HEIGHT;  // sfond i largët
-        sceneryOffset2 = (sceneryOffset2 + 5) % PANEL_HEIGHT;  // objekte të afërta
+        laneMarkerOffset = (laneMarkerOffset + 6) % 50; // nga 4%60 → 6%50 — lëvizje më e shpejtë
+        sceneryOffset1 = (sceneryOffset1 + 3) % (PANEL_HEIGHT + 60);  // pemë
+        sceneryOffset2 = (sceneryOffset2 + 2) % (PANEL_HEIGHT + 60);  // gurë — ngadalë
         score++;
 
         if (score / 10 > lastScore / 10) scorePulse = 20;
@@ -331,7 +339,9 @@ public class GamePanel extends JPanel implements KeyListener {
         if (score % 500 == 0) {
             level++;
             enemySpeed = Math.min(enemySpeed + 1, 12);
+            levelUpTimer = 90;  // ~1.5 sekonda në 60fps
         }
+        if (levelUpTimer > 0) levelUpTimer--;
     }
 
     // ── Rendering ─────────────────────────────────────────────────────────────
@@ -407,9 +417,11 @@ public class GamePanel extends JPanel implements KeyListener {
 
 // Vijat e korsive
         g2.setColor(COLOR_LANE_MARK);
-        float[] dashPattern = {30f, 30f};
-        g2.setStroke(new BasicStroke(3f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER,
-                10f, dashPattern, laneMarkerOffset));
+        // Vijat ndarëse — lëvizin sipas laneMarkerOffset për iluzion lëvizjeje
+        float[] dashPattern = {25f, 25f};
+        g2.setStroke(new BasicStroke(2.5f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER,
+                10f, dashPattern, laneMarkerOffset * 1.5f)); // ← *1.5f bën lëvizjen më të dukshme
+        g2.setColor(new Color(255, 220, 0, 100)); // pak më transparent — jo strobe
 
         //Ndertimi i 4 korsive  me ane te nje cikli for(update day2)
         int totalLanes = 4;
@@ -425,28 +437,65 @@ public class GamePanel extends JPanel implements KeyListener {
 
     //Metoda per vizatimin e pemeve dhe objekteve anesore
     private void drawScenery(Graphics2D g2) {
-        // Objekte të largëta — majtas rrugës (pemë të vogla)
-        int[] treesX = {10, 15, 8};  // pozicionet X anash
-        for (int i = 0; i < 3; i++) {
-            int y = (sceneryOffset1 + i * 200) % PANEL_HEIGHT;
+        // ── Pemë majtas — 4 pemë me detaje ───────────────────────
+        int[] treeOffsetsLeft = {0, 160, 320, 480};
+        for (int offset : treeOffsetsLeft) {
+            int y = (sceneryOffset1 + offset) % (PANEL_HEIGHT + 60) - 30;
+
+            // Hija e pemës
+            g2.setColor(new Color(0, 0, 0, 40));
+            g2.fillOval(4, y + 28, 20, 8);
+
             // Trungu
-            g2.setColor(new Color(100, 70, 40));
-            g2.fillRect(treesX[i], y, 6, 20);
-            // Kurora
-            g2.setColor(new Color(30, 120, 30, 180));
-            g2.fillOval(treesX[i] - 8, y - 15, 22, 22);
+            g2.setColor(new Color(90, 55, 30));
+            g2.fillRoundRect(10, y + 18, 7, 22, 3, 3);
+
+            // Kurora e jashtme (e errët)
+            g2.setColor(new Color(20, 90, 20, 200));
+            g2.fillOval(0, y, 28, 28);
+
+            // Kurora e brendshme (highlight)
+            g2.setColor(new Color(40, 140, 40, 160));
+            g2.fillOval(4, y + 2, 18, 18);
+
+            // Shkëlqimi i vogël
+            g2.setColor(new Color(100, 200, 80, 80));
+            g2.fillOval(8, y + 3, 8, 7);
         }
 
-        // Objekte të afërta — djathtas (shenja rruge neon)
-        int[] signsX = {450, 455, 448};
-        for (int i = 0; i < 3; i++) {
-            int y = (sceneryOffset2 + i * 220) % PANEL_HEIGHT;
-            // Shtylla
-            g2.setColor(new Color(150, 150, 150));
-            g2.fillRect(signsX[i], y, 4, 30);
-            // Tabela neon
-            g2.setColor(new Color(0, 200, 255, 160));
-            g2.fillRoundRect(signsX[i] - 10, y - 10, 24, 14, 4, 4);
+        // ── Gurë djathtas ─────────────────────────────────────────
+        int[] rockOffsets = {0, 150, 300, 450};
+        int[] rockWidths  = {22, 16, 26, 18};
+        int[] rockHeights = {14, 10, 18, 12};
+
+        for (int i = 0; i < rockOffsets.length; i++) {
+            int y = (sceneryOffset2 + rockOffsets[i]) % (PANEL_HEIGHT + 60) - 30;
+            int rx = 448;
+            int rw = rockWidths[i];
+            int rh = rockHeights[i];
+
+            // Hija e gurit
+            g2.setColor(new Color(0, 0, 0, 50));
+            g2.fillOval(rx + 2, y + rh - 3, rw - 4, 6);
+
+            // Trupi kryesor i gurit — forma e rrumbullakët
+            g2.setColor(new Color(100, 95, 90));
+            g2.fillRoundRect(rx, y, rw, rh, 8, 8);
+
+            // Shtresa e dytë — pak më e çelur (volumi)
+            g2.setColor(new Color(130, 125, 118));
+            g2.fillRoundRect(rx + 2, y + 1, rw - 6, rh - 5, 6, 6);
+
+            // Highlight i vogël — drita nga lart
+            g2.setColor(new Color(180, 175, 168, 140));
+            g2.fillOval(rx + 4, y + 2, rw / 3, rh / 4);
+
+            // Krisje/detaj — një vijë e errët diagonale
+            g2.setColor(new Color(70, 65, 60, 160));
+            g2.setStroke(new BasicStroke(1f));
+            g2.drawLine(rx + rw / 2, y + 3, rx + rw - 4, y + rh - 4);
+
+            g2.setStroke(new BasicStroke(1f));
         }
     }
 
@@ -615,6 +664,28 @@ public class GamePanel extends JPanel implements KeyListener {
         g2.setColor(new Color(255, 255, 255, 200));
         g2.drawString("LEVEL: " + level, ROAD_RIGHT - 80, 24);
 
+        //Timer per njoftimin e kalimit te nivelit
+        if (levelUpTimer > 0) {
+            // Alpha ulet me kalimin e kohës — fade out
+            float alpha = Math.min(1f, levelUpTimer / 30f);
+            g2.setColor(new Color(255, 215, 0, (int)(alpha * 255)));
+            g2.setFont(new Font("Monospaced", Font.BOLD, 42));
+            g2.drawString("LEVEL UP!", 120, PANEL_HEIGHT / 2 - 60);
+        }
+
+        //Nqs loja eshte bere Pause shfaqen opsionet
+        if (paused) {
+            // Overlay gjysmë-transparent
+            g2.setColor(new Color(0, 0, 0, 140));
+            g2.fillRect(0, 0, PANEL_WIDTH, PANEL_HEIGHT);
+            // Teksti
+            g2.setColor(Color.WHITE);
+            g2.setFont(new Font("Monospaced", Font.BOLD, 40));
+            g2.drawString("PAUSED", 150, PANEL_HEIGHT / 2);
+            g2.setFont(new Font("Monospaced", Font.PLAIN, 14));
+            g2.setColor(new Color(200, 200, 200));
+            g2.drawString("ESC për të vazhduar", 155, PANEL_HEIGHT / 2 + 35);
+        }
 
         //Nqs mbaron loja shfaqim me ngjyre te kuqe mesazhin game over
         if (gameOver) {
@@ -697,7 +768,16 @@ public class GamePanel extends JPanel implements KeyListener {
         switch (e.getKeyCode()) {
             case KeyEvent.VK_LEFT  -> movingLeft  = true;
             case KeyEvent.VK_RIGHT -> movingRight = true;
+            case KeyEvent.VK_ESCAPE -> {
+                paused = !paused;
+                if (paused) {
+                    gameTimer.stop();
+                    repaint();
+                }
+                else        gameTimer.start();
+            }
         }
+
     }
 
     @Override
