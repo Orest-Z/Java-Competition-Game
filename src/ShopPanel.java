@@ -98,10 +98,14 @@ public class ShopPanel extends JPanel {
         btn.addActionListener(e -> {
             if (MainFrame.totalMoney >= cost) {
                 MainFrame.totalMoney -= cost;
+                AudioManager succsesSound = new AudioManager();
+                succsesSound.playSFX("assets/succsesPurchase.wav");
                 SaveManager.save(MainFrame.highScore, MainFrame.totalMoney);
                 onBuy.run();  // ekzekuton: currentMap = "SNOW" etj.
                 moneyLabel.setText("💰  " + MainFrame.totalMoney + " coins");
             } else {
+                AudioManager failedPurchase=new AudioManager();
+                failedPurchase.playSFX("assets/failedPurchase.wav");
                 JOptionPane.showMessageDialog(this,
                         "Ju nuk keni mjaftueshem para! Të duhen " + cost + " monedha.",
                         "Shop", JOptionPane.WARNING_MESSAGE);

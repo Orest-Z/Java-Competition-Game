@@ -178,12 +178,13 @@ public class MenuPanel extends JPanel {
                 mainFrame.toggleFullscreen();
             }
             boolean wasMusicEnabled = GamePanel.musicEnabled;//ruajme gjendjen qe muzika eshte (nqs do ndryshoje apo jo)
+
+            GamePanel.musicEnabled = musicBox.isSelected();
+            GamePanel.sfxEnabled   = sfxBox.isSelected();
+
             if (GamePanel.musicEnabled) {
-                // Luaje vetëm nëse sapo u ndez (ishte off dhe u bë on)
-                // ose nëse për ndonjë arsye ishte on por nuk po luante
                 audioManager.playMusic();
             } else {
-                // Ndaloje vetëm nëse përdoruesi e hoqi tikun
                 audioManager.stopMusic();
             }
             dialog.dispose();
