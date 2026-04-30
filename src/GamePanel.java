@@ -212,6 +212,18 @@ public class GamePanel extends JPanel implements KeyListener {
     public void startGame() {
         crashPlayed = false;    //Sa here ristartojme lojen crashPLayed kthehet False. Ky ishte buggu
         paused = false;
+        enemies.clear();    //Pastrojme armiqte e nivelit te kaluar qe te mos jene ne ekran
+        particles.clear();  //pastrojme particles
+        shakeDuration=0;    //reset shake
+        //resetime te trail
+        trailIndex    = 0;
+        trailX        = new int[TRAIL_LENGTH];
+        trailY        = new int[TRAIL_LENGTH];
+        trailLeanOffset = 0f;
+        rainbowTick   = 0;
+        carX = (ROAD_LEFT + ROAD_RIGHT) / 2 - CAR_WIDTH / 2;//pozicioni i startit te makines se lojtarit
+        restartButton.setVisible(false);
+        menuButton.setVisible(false);
         requestFocusInWindow();
         if (!gameTimer.isRunning()) {
             gameTimer.start();
@@ -257,8 +269,6 @@ public class GamePanel extends JPanel implements KeyListener {
 
         crashPlayed = false;  // ← mund të crash-ohet serisht
 
-        // Fshih butonin dhe rinis loop-in
-       gameTimer.start();
         requestFocusInWindow();
 
         //Behet reset niveli dhe piket
@@ -364,7 +374,6 @@ public class GamePanel extends JPanel implements KeyListener {
                 int enemyX = ROAD_LEFT + (lanes[i] * laneWidth) + (laneWidth / 2) - (CAR_WIDTH / 2);
                 Color randomColor = ENEMY_COLORS[(int)(Math.random() * ENEMY_COLORS.length)];
                 enemies.add(new EnemyCar(enemyX, -CAR_HEIGHT, enemySpeed, randomColor));
-                repaint();
             }
 
         }
