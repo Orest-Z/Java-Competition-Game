@@ -67,6 +67,15 @@ public class GamePanel extends JPanel implements KeyListener {
     //ArrayLista per particles
     private ArrayList<Particle> particles = new ArrayList<>();
 
+    // Variablat per trail — dy vija anesore (ose 1 per motorrin) pas makines se lojtarit
+    private static final int TRAIL_LENGTH = 14;
+    private int[] trailX = new int[TRAIL_LENGTH];
+    private int[] trailY = new int[TRAIL_LENGTH];
+    private int trailIndex = 0;
+    private float trailLeanOffset = 0f;  // lean drejt drejtimit te levizjes
+    private int rainbowTick = 0;         // per animacionin e rainbow trail
+    public static String currentTrail = "NONE"; // "NONE","RED","BLUE","GREEN","PURPLE","RAINBOW"
+
     private int scorePulse     = 0;   // sa frame mbetet pulse
     private int lastScore      = 0;   // për të detektuar ndryshimin
 
@@ -248,7 +257,6 @@ public class GamePanel extends JPanel implements KeyListener {
 
         crashPlayed = false;  // ← mund të crash-ohet serisht
 
-
         // Fshih butonin dhe rinis loop-in
        gameTimer.start();
         requestFocusInWindow();
@@ -276,6 +284,13 @@ public class GamePanel extends JPanel implements KeyListener {
         }
         //Muzika rinis kur shkon ne Menu
         audioManager.playMusic();
+
+        //Reset i trail-it
+        trailIndex = 0;
+        trailX = new int[TRAIL_LENGTH];
+        trailY = new int[TRAIL_LENGTH];
+        trailLeanOffset = 0f;
+        rainbowTick = 0;
     }
 
     // ── Game logic update ─────────────────────────────────────────────────────
@@ -307,8 +322,24 @@ public class GamePanel extends JPanel implements KeyListener {
         if (movingRight) carX += MOVE_SPEED;
         carX = Math.max(ROAD_LEFT, Math.min(carX, ROAD_RIGHT - CAR_WIDTH));
 
+        // Lean offset drifton drejt drejtimit qe lojtari shtyp — per efektin e trails
+        if (movingLeft)       trailLeanOffset = Math.max(trailLeanOffset - 1.5f, -8f);
+        else if (movingRight) trailLeanOffset = Math.min(trailLeanOffset + 1.5f,  8f);
+        else                  trailLeanOffset *= 0.75f;
+
+        // Ruajme pozicionin ne buffer cirkular per trail
+        trailX[trailIndex] = carX;
+        trailY[trailIndex] = carY;
+        trailIndex = (trailIndex + 1) % TRAIL_LENGTH;
+
+        // Rainbow tick per animacion
+        if (currentTrail.equals("RAINBOW")) rainbowTick++;
+
         spawnTimer++;
-        if (spawnTimer >= 40) {
+        // Interval shrinks each level — floor of 18 frames so it never gets impossible
+        int spawnInterval = Math.max(18, 40 - (level * 3));
+
+        if (spawnTimer >= spawnInterval) {
             spawnTimer = 0;
 
             int totalLanes = 4;
@@ -321,14 +352,13 @@ public class GamePanel extends JPanel implements KeyListener {
                 int tmp = lanes[i]; lanes[i] = lanes[j]; lanes[j] = tmp;
             }
 
-            // Gjithmonë spawn 1 makinë
+            //Ndryshova menyren e mundesive qe ka qe te beje spawn me shume se 1 makine pernjeheresh
             int carsToSpawn = 1;
+            if (level >= 3 && Math.random() < 0.25 + (level * 0.04)) carsToSpawn = 2;
+            if (level >= 6 && Math.random() < 0.15 + (level * 0.02)) carsToSpawn = 3;
 
-            // Score > 500: 30% mundësi për 2 makina
-            if (score > 500  && Math.random() < 0.30) carsToSpawn = 2;
-
-            // Score > 1500: 20% mundësi shtesë për 3 makina
-            if (score > 1500 && Math.random() < 0.20) carsToSpawn = 3;
+            // Cap at 3 so it's always physically possible to dodge
+            carsToSpawn = Math.min(carsToSpawn, 3);
 
             for (int i = 0; i < carsToSpawn; i++) {
                 int enemyX = ROAD_LEFT + (lanes[i] * laneWidth) + (laneWidth / 2) - (CAR_WIDTH / 2);
@@ -381,6 +411,7 @@ public class GamePanel extends JPanel implements KeyListener {
 
         drawRoad(g2);
         drawScenery(g2);
+        drawTrail(g2); // Vizatojme trail-in perpara makines qe te shfaqet nen te
         switch (MainFrame.currentSkin) {
             case "POLICE" -> drawPoliceCar(g2);
             case "MOTO"   -> drawMotorcycle(g2);
@@ -584,6 +615,70 @@ public class GamePanel extends JPanel implements KeyListener {
         g2.drawRoundRect(x, y, w, h, 10, 10);
         g2.setStroke(new BasicStroke(1f));
     }
+
+    // Metoda per vizatimin e trail-it — dy vija anesore per makina, nje vije qendrore per motorr
+    private void drawTrail(Graphics2D g2) {
+        if (currentTrail.equals("NONE")) return;
+
+        boolean isMoto = MainFrame.currentSkin.equals("MOTO");
+
+        for (int i = 0; i < TRAIL_LENGTH; i++) {
+            int idx = (trailIndex - 1 - i + TRAIL_LENGTH) % TRAIL_LENGTH;
+
+            // Alpha ulet me distance — frame me i afert eshte me i dukshem
+            float fraction = 1f - ((float) i / TRAIL_LENGTH);
+            int alpha = (int)(fraction * fraction * 180);
+            if (alpha <= 0) continue;
+
+            Color baseColor = getTrailColor(i, alpha);
+
+            int tx = trailX[idx];
+            int ty = trailY[idx];
+            int lean = (int) trailLeanOffset;
+
+            if (isMoto) {
+                // Nje vije e vetme qendrore nga prapa motorrit — me e gjate
+                int motoW = 18;
+                int centerX = tx + (CAR_WIDTH - motoW) / 2 + motoW / 2;
+                int lineW = Math.max(3, (int)(fraction * 6));
+                int lineH = Math.max(6, (int)(fraction * 22)); // zmadhova gjatesine
+                g2.setColor(baseColor);
+                g2.fillRoundRect(centerX - lineW / 2 + lean, ty + CAR_HEIGHT - 2,
+                        lineW, lineH, 3, 3);
+            } else {
+                // Dy vija anesore — majtas dhe djathtas e trupit te makines — me te gjata
+                int lineW = Math.max(3, (int)(fraction * 7));   // pak me te gjera
+                int lineH = Math.max(8, (int)(fraction * 30)); // zmadhova gjatesine nga 14 → 30
+                int insetX = 4; // pak me afer skajes se makines
+
+                g2.setColor(baseColor);
+                // Vija e majte
+                g2.fillRoundRect(tx + insetX + lean, ty + CAR_HEIGHT - 2,
+                        lineW, lineH, 4, 4);
+                // Vija e djathte
+                g2.fillRoundRect(tx + CAR_WIDTH - insetX - lineW + lean, ty + CAR_HEIGHT - 2,
+                        lineW, lineH, 4, 4);
+            }
+        }
+    }
+
+    // Metoda per ngjyren e trail-it bazuar ne zgjedhjen e lojtarit nga shop
+    private Color getTrailColor(int frameAge, int alpha) {
+        return switch (currentTrail) {
+            case "RED"    -> new Color(255, 40,  40,  alpha);
+            case "BLUE"   -> new Color(40,  140, 255, alpha);
+            case "GREEN"  -> new Color(40,  220, 80,  alpha);
+            case "PURPLE" -> new Color(180, 40,  255, alpha);
+            case "RAINBOW" -> {
+                // Cdo segment merr nje ngjyre te ndryshme hue, e animuar me kalimin e kohes
+                float hue = ((rainbowTick - frameAge * 4) % 360) / 360f;
+                Color c = Color.getHSBColor(Math.abs(hue), 1f, 1f);
+                yield new Color(c.getRed(), c.getGreen(), c.getBlue(), alpha);
+            }
+            default -> new Color(80, 180, 255, alpha);
+        };
+    }
+
     //Shtova nje skin Makine Policie
     private void drawPoliceCar(Graphics2D g2) {
         // Vizato makinën normale fillimisht
