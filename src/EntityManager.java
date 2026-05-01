@@ -187,7 +187,7 @@ public class EntityManager {
                     GamePanel.CAR_WIDTH - 10, GamePanel.CAR_HEIGHT - 10);
             if (playerHitbox.intersects(coin.hitbox)) {
                 MainFrame.totalMoney += 10; // 10 monedha per coin
-                audioManager.playSFX("assets/click.wav"); // ose nje sfx te vecante
+                audioManager.playSFX("assets/coinPickUp.wav"); // sfx per coin pickup
                 SaveManager.save(MainFrame.highScore, MainFrame.totalMoney);
                 cit.remove();
             }
@@ -214,7 +214,7 @@ public class EntityManager {
             if (playerHitbox.intersects(shield.hitbox)) {
                 shieldActive = true;
                 shieldTimer  = SHIELD_DURATION;
-                audioManager.playSFX("assets/succsesPurchase.wav"); // ose shieldSFX.wav nëse ke
+                audioManager.playSFX("assets/shieldEquip.wav");
                 sit.remove();
             }
         }
