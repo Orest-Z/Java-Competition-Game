@@ -45,23 +45,9 @@ public class ShopPanel extends JPanel {
         add(title, gbc);
 
         // ── Monedhat ─────────────────────────────────────────
-        //Tani perdoret imazhi per monedhat ne vend te jlabel dhe emojit
-        JPanel moneyPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 0));
-        moneyPanel.setOpaque(false);
-
-        ImageIcon coinIcon = new ImageIcon(
-                new ImageIcon("assets/coinImage.png").getImage()
-                        .getScaledInstance(20, 20, Image.SCALE_SMOOTH));
-        JLabel coinIconLabel = new JLabel(coinIcon);
-
-        moneyLabel = new JLabel(MainFrame.totalMoney + " coins");
+        moneyLabel = new JLabel("💰  " + MainFrame.totalMoney + " coins", SwingConstants.CENTER);
         moneyLabel.setFont(new Font("Monospaced", Font.BOLD, 16));
         moneyLabel.setForeground(new Color(255, 215, 0));
-
-        moneyPanel.add(coinIconLabel);
-        moneyPanel.add(moneyLabel);
-        gbc.gridy = 1;
-        add(moneyPanel, gbc);
         gbc.gridy = 1;
         add(moneyLabel, gbc);
 

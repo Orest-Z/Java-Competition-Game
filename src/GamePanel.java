@@ -53,6 +53,17 @@ public class GamePanel extends JPanel implements KeyListener {
     private int coinSpawnTimer = 0;
     private ArrayList<Coin> coins=new ArrayList<>();
     private final int COIN_SPAWN_INTERVAL=60;
+
+    // ── Variablat per mburojen(shield) ───────────────────────────────────────────────────────
+    private ArrayList<Shield> shields = new ArrayList<>();
+    private int shieldSpawnTimer  = 0;
+    private static final int SHIELD_SPAWN_INTERVAL = 300; // spawn çdo ~5 sekonda (60fps × 5)
+
+    private boolean shieldActive  = false;   // a është aktiv shield-i
+    private int     shieldTimer   = 0;       // sa frame mbetet aktiv (300 = 5 sek)
+    private static final int SHIELD_DURATION = 300; // 5 sekonda × 60fps
+    private float   shieldPulse   = 0f;      // për animacionin e halo-s rreth makinës
+
     // ── Input state ──────────────────────────────────────────────────────────
     private boolean movingLeft  = false;
     private boolean movingRight = false;
@@ -221,6 +232,13 @@ public class GamePanel extends JPanel implements KeyListener {
         shakeDuration=0;    //reset shake
         coins.clear();
         coinSpawnTimer = 0;
+        //----------reset te shields---------
+        shields.clear();
+        shieldSpawnTimer = 0;
+        shieldActive     = false;
+        shieldTimer      = 0;
+        shieldPulse      = 0f;
+        //---------------------------
         //resetime te trail
         trailIndex    = 0;
         trailX        = new int[TRAIL_LENGTH];
@@ -299,6 +317,35 @@ public class GamePanel extends JPanel implements KeyListener {
             }
         }
     }
+    //Metoda per spawnin e mburojave
+    private void spawnShield() {
+        int totalLanes = 4;
+        int laneWidth  = (ROAD_RIGHT - ROAD_LEFT) / totalLanes;
+        int shieldSize = 34;
+
+        int[] lanes = {0, 1, 2, 3};
+        for (int i = 3; i > 0; i--) {
+            int j = (int)(Math.random() * (i + 1));
+            int tmp = lanes[i]; lanes[i] = lanes[j]; lanes[j] = tmp;
+        }
+
+        for (int lane : lanes) {
+            int sx = ROAD_LEFT + (lane * laneWidth) + (laneWidth / 2) - (shieldSize / 2);
+            int sy = -shieldSize;
+
+            boolean laneClear = true;
+            for (EnemyCar enemy : enemies) {
+                if (Math.abs(enemy.x - sx) < laneWidth && enemy.y < 200) {
+                    laneClear = false;
+                    break;
+                }
+            }
+            if (laneClear) {
+                shields.add(new Shield(sx, sy));
+                break;
+            }
+        }
+    }
 
 
     //Metoda qe perdoret per te rifilluar lojen
@@ -308,7 +355,13 @@ public class GamePanel extends JPanel implements KeyListener {
         paused = false;
         spawnTimer  = 0;
         enemies.clear();  // fshi të gjitha makinat armike
-
+        //-------------reset shield------------
+        shields.clear();
+        shieldSpawnTimer = 0;
+        shieldActive     = false;
+        shieldTimer      = 0;
+        shieldPulse      = 0f;
+        //----------------------------
         crashPlayed = false;  // ← mund të crash-ohet serisht
 
         requestFocusInWindow();
@@ -453,6 +506,42 @@ public class GamePanel extends JPanel implements KeyListener {
             }
         }
 
+        // ── Spawn shields ─────────────────────────────────────────────────────
+        shieldSpawnTimer++;
+        if (shieldSpawnTimer >= SHIELD_SPAWN_INTERVAL) {
+            shieldSpawnTimer = 0;
+            spawnShield();
+        }
+
+        // ── Menyra e spawnit te mburojave e ngjashme me coins por pak me rralle──────────
+        Iterator<Shield> sit = shields.iterator();
+        while (sit.hasNext()) {
+            Shield shield = sit.next();
+            shield.update();
+            if (shield.isOffScreen(PANEL_HEIGHT)) {
+                sit.remove();
+                continue;
+            }
+            Rectangle playerHitbox = new Rectangle(carX + 5, carY + 5,
+                    CAR_WIDTH - 10, CAR_HEIGHT - 10);
+            if (playerHitbox.intersects(shield.hitbox)) {
+                shieldActive = true;
+                shieldTimer  = SHIELD_DURATION;
+                audioManager.playSFX("assets/succsesPurchase.wav"); // ose shieldSFX.wav nëse ke
+                sit.remove();
+            }
+        }
+
+        // ── Shield countdown ──────────────────────────────────────────────────
+        if (shieldActive) {
+            shieldTimer--;
+            shieldPulse = (float)(Math.sin(shieldTimer * 0.2f) * 0.5f + 0.5f); // 0.0 → 1.0
+            if (shieldTimer <= 0) {
+                shieldActive = false;
+                shieldPulse  = 0f;
+            }
+        }
+
 
         checkCollisions();
 
@@ -491,12 +580,14 @@ public class GamePanel extends JPanel implements KeyListener {
         drawRoad(g2);
         drawScenery(g2);
         drawCoins(g2);
+        drawShields(g2);//therras metoden per te vizatuar shield
         drawTrail(g2); // Vizatojme trail-in perpara makines qe te shfaqet nen te
         switch (MainFrame.currentSkin) {
             case "POLICE" -> drawPoliceCar(g2);
             case "MOTO"   -> drawMotorcycle(g2);
             default       -> drawPlayerCar(g2);
         }
+        drawShieldOverlay(g2);//overlay qe tregon se shieldi eshte aktiv
         drawEnemies(g2);
         drawParticles(g2);//Vizatojme particles
         g2.translate(-shakeX, -shakeY); // ← RESET para HUD — HUD nuk duhet të shake-ohet
@@ -840,6 +931,37 @@ public class GamePanel extends JPanel implements KeyListener {
         }
     }
 
+    //Metoda per vizatimin e mburojes
+    private void drawShields(Graphics2D g2) {
+        for (Shield s : shields) {
+            s.draw(g2);
+        }
+    }
+
+    // Halo blu rreth makinës kur shield është aktiv
+    private void drawShieldOverlay(Graphics2D g2) {
+        if (!shieldActive) return;
+
+        // Pulse — intensiteti ndryshon me kohën
+        float alpha = 0.25f + shieldPulse * 0.25f;
+        int expand  = (int)(shieldPulse * 8);
+
+        // Shtresa e jashtme glow
+        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha * 0.5f));
+        g2.setColor(new Color(0, 180, 255));
+        g2.fillOval(carX - 12 - expand, carY - 12 - expand,
+                CAR_WIDTH + 24 + expand * 2, CAR_HEIGHT + 24 + expand * 2);
+
+        // Rreth kryesor
+        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+        g2.setColor(new Color(0, 220, 255));
+        g2.setStroke(new BasicStroke(3f));
+        g2.drawOval(carX - 10, carY - 10, CAR_WIDTH + 20, CAR_HEIGHT + 20);
+        g2.setStroke(new BasicStroke(1f));
+
+        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
+    }
+
     /** Draws a simple HUD showing the control hint. */
     private void drawHUD(Graphics2D g2) {
         g2.setColor(new Color(255, 255, 255, 160));
@@ -866,6 +988,34 @@ public class GamePanel extends JPanel implements KeyListener {
             g2.setColor(new Color(255, 215, 0));
             g2.setFont(new Font("Monospaced", Font.BOLD, 13));
             g2.drawString("" + MainFrame.totalMoney, ROAD_LEFT + 30, PANEL_HEIGHT - 38);
+        }
+
+        // ── Shield HUD — shirit blu me kohën mbetur ───────────────────────────
+        if (shieldActive) {
+            int barW = 120;
+            int barH = 10;
+            int barX = PANEL_WIDTH / 2 - barW / 2;
+            int barY = 38;
+
+            float ratio = (float) shieldTimer / SHIELD_DURATION;
+
+            // Sfond i errët
+            g2.setColor(new Color(0, 0, 0, 160));
+            g2.fillRoundRect(barX - 2, barY - 2, barW + 4, barH + 4, 6, 6);
+
+            // Mbushja blu
+            g2.setColor(new Color(0, 180, 255));
+            g2.fillRoundRect(barX, barY, (int)(barW * ratio), barH, 5, 5);
+
+            // Border
+            g2.setColor(new Color(0, 220, 255, 180));
+            g2.setStroke(new BasicStroke(1f));
+            g2.drawRoundRect(barX, barY, barW, barH, 5, 5);
+
+            // Etiketa
+            g2.setColor(new Color(0, 220, 255));
+            g2.setFont(new Font("Monospaced", Font.BOLD, 11));
+            g2.drawString("🛡 SHIELD", barX + barW / 2 - 28, barY - 3);
         }
 
         g2.setFont(new Font("Monospaced", Font.BOLD, scoreSize));
@@ -979,7 +1129,7 @@ public class GamePanel extends JPanel implements KeyListener {
             Rectangle playerHitbox = new Rectangle(hitX, carY + 5, hitW, CAR_HEIGHT - 10);
 
             for (EnemyCar enemy : enemies) {
-                if (playerHitbox.intersects(enemy.hitbox) && !crashPlayed) {
+                if (playerHitbox.intersects(enemy.hitbox) && !crashPlayed && !shieldActive) {
                     crashPlayed = true;
                     gameOver    = true;
 
@@ -988,6 +1138,7 @@ public class GamePanel extends JPanel implements KeyListener {
                     spawnParticles(carX, carY);
 
                     audioManager.playSFX("assets/crashSFX.wav");
+
 
                     // Ekonomia
                     MainFrame.totalMoney += score / 10;
