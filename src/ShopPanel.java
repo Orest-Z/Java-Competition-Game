@@ -45,9 +45,23 @@ public class ShopPanel extends JPanel {
         add(title, gbc);
 
         // ── Monedhat ─────────────────────────────────────────
-        moneyLabel = new JLabel("💰  " + MainFrame.totalMoney + " coins", SwingConstants.CENTER);
+        //Tani perdoret imazhi per monedhat ne vend te jlabel dhe emojit
+        JPanel moneyPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 0));
+        moneyPanel.setOpaque(false);
+
+        ImageIcon coinIcon = new ImageIcon(
+                new ImageIcon("assets/coinImage.png").getImage()
+                        .getScaledInstance(20, 20, Image.SCALE_SMOOTH));
+        JLabel coinIconLabel = new JLabel(coinIcon);
+
+        moneyLabel = new JLabel(MainFrame.totalMoney + " coins");
         moneyLabel.setFont(new Font("Monospaced", Font.BOLD, 16));
         moneyLabel.setForeground(new Color(255, 215, 0));
+
+        moneyPanel.add(coinIconLabel);
+        moneyPanel.add(moneyLabel);
+        gbc.gridy = 1;
+        add(moneyPanel, gbc);
         gbc.gridy = 1;
         add(moneyLabel, gbc);
 
@@ -95,7 +109,7 @@ public class ShopPanel extends JPanel {
         buyBtn.setBorderPainted(false);
 
         // Opsionet e ngjyrave me emrat e tyre — perdoren per matching me currentTrail
-        String[] trailOptions = {"🔴 Red", "🔵 Blue", "🟢 Green", "🟣 Purple", "🌈 Rainbow", "✕ None"};
+        String[] trailOptions = {" Red", " Blue", " Green", " Purple", " Rainbow", "✕ None"};
         JComboBox<String> colorPicker = new JComboBox<>(trailOptions);
         colorPicker.setFont(new Font("SansSerif", Font.BOLD, 13));
         colorPicker.setBackground(new Color(40, 40, 80));
@@ -110,7 +124,9 @@ public class ShopPanel extends JPanel {
             public Component getListCellRendererComponent(JList<?> list, Object value,
                                                           int index, boolean isSelected, boolean cellHasFocus) {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                String text = value == null ? "" : value.toString();
+                String text;
+                if (value == null) text = "";
+                else text = value.toString();
 
                 // Ngjyra e background-it per cdo opsion
                 Color bg;
@@ -144,7 +160,9 @@ public class ShopPanel extends JPanel {
 
             // "None" eshte falas — nuk zbritet para
             boolean isFree = selected != null && selected.contains("None");
-            int cost = isFree ? 0 : 2000;
+            int cost;
+            if (isFree) cost = 0;
+            else cost = 2000;
 
             if (MainFrame.totalMoney >= cost) {
                 MainFrame.totalMoney -= cost;

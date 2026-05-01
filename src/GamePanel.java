@@ -49,6 +49,10 @@ public class GamePanel extends JPanel implements KeyListener {
     private int level        = 1;   // niveli aktual
     private int enemySpeed   = 4;   // fillon me 4, rritet me level
 
+    //Variablat per coins
+    private int coinSpawnTimer = 0;
+    private ArrayList<Coin> coins=new ArrayList<>();
+    private final int COIN_SPAWN_INTERVAL=60;
     // ── Input state ──────────────────────────────────────────────────────────
     private boolean movingLeft  = false;
     private boolean movingRight = false;
@@ -215,6 +219,8 @@ public class GamePanel extends JPanel implements KeyListener {
         enemies.clear();    //Pastrojme armiqte e nivelit te kaluar qe te mos jene ne ekran
         particles.clear();  //pastrojme particles
         shakeDuration=0;    //reset shake
+        coins.clear();
+        coinSpawnTimer = 0;
         //resetime te trail
         trailIndex    = 0;
         trailX        = new int[TRAIL_LENGTH];
@@ -258,6 +264,42 @@ public class GamePanel extends JPanel implements KeyListener {
             particles.add(new Particle(x + CAR_WIDTH / 2f, y + CAR_HEIGHT / 2f));
         }
     }
+
+    //Metoda per spawnin e monedhave
+    private void spawnCoin() {
+        int totalLanes = 4;
+        int laneWidth  = (ROAD_RIGHT - ROAD_LEFT) / totalLanes;
+        int coinSize   = 28;
+
+        // Provoj lane te ndryshme derisa gjej nje qe nuk ka enemy
+        // Shuffle lanes per randomness
+        int[] lanes = {0, 1, 2, 3};
+        for (int i = 3; i > 0; i--) {
+            int j = (int)(Math.random() * (i + 1));
+            int tmp = lanes[i]; lanes[i] = lanes[j]; lanes[j] = tmp;
+        }
+
+        for (int lane : lanes) {
+            int coinX = ROAD_LEFT + (lane * laneWidth) + (laneWidth / 2) - (coinSize / 2);
+            int coinY = -coinSize; // spawno jashte ekranit siper
+
+            // Kontrolloj qe asnje enemy nuk eshte ne kete lane afersisht
+            boolean laneClear = true;
+            for (EnemyCar enemy : enemies) {
+                // Nese enemy eshte ne te njejten X zone dhe afert siper
+                if (Math.abs(enemy.x - coinX) < laneWidth && enemy.y < 200) {
+                    laneClear = false;
+                    break;
+                }
+            }
+
+            if (laneClear) {
+                coins.add(new Coin(coinX, coinY));
+                break; // spawno vetem nje coin per here
+            }
+        }
+    }
+
 
     //Metoda qe perdoret per te rifilluar lojen
     private void restartGame() {
@@ -384,6 +426,34 @@ public class GamePanel extends JPanel implements KeyListener {
             if (enemy.y > PANEL_HEIGHT) it.remove();
         }
 
+        // ── Spawn coins ───────────────────────────────────────
+        coinSpawnTimer++;
+        if (coinSpawnTimer >= COIN_SPAWN_INTERVAL) {
+            coinSpawnTimer = 0;
+            spawnCoin();
+        }
+
+// ── Update dhe collect coins ──────────────────────────
+        Iterator<Coin> cit = coins.iterator();
+        while (cit.hasNext()) {
+            Coin coin = cit.next();
+            coin.update();
+            if (coin.isOffScreen(PANEL_HEIGHT)) {
+                cit.remove();
+                continue;
+            }
+            // Collision me lojtarin
+            Rectangle playerHitbox = new Rectangle(carX + 5, carY + 5,
+                    CAR_WIDTH - 10, CAR_HEIGHT - 10);
+            if (playerHitbox.intersects(coin.hitbox)) {
+                MainFrame.totalMoney += 10; // 10 monedha per coin
+                audioManager.playSFX("assets/click.wav"); // ose nje sfx te vecante
+                SaveManager.save(MainFrame.highScore, MainFrame.totalMoney);
+                cit.remove();
+            }
+        }
+
+
         checkCollisions();
 
         laneMarkerOffset = (laneMarkerOffset + 6) % 50; // nga 4%60 → 6%50 — lëvizje më e shpejtë
@@ -420,6 +490,7 @@ public class GamePanel extends JPanel implements KeyListener {
 
         drawRoad(g2);
         drawScenery(g2);
+        drawCoins(g2);
         drawTrail(g2); // Vizatojme trail-in perpara makines qe te shfaqet nen te
         switch (MainFrame.currentSkin) {
             case "POLICE" -> drawPoliceCar(g2);
@@ -762,6 +833,12 @@ public class GamePanel extends JPanel implements KeyListener {
             enemy.draw(g2);
         }
     }
+    //Metoda e vizatimit te monedhave
+    private void drawCoins(Graphics2D g2) {
+        for (Coin coin : coins) {
+            coin.draw(g2);
+        }
+    }
 
     /** Draws a simple HUD showing the control hint. */
     private void drawHUD(Graphics2D g2) {
@@ -781,6 +858,14 @@ public class GamePanel extends JPanel implements KeyListener {
             scoreColor = new Color(255, 215, 0);   // ← pulse — ari
         } else {
             scoreColor = new Color(255, 255, 255, 200); // ← normal
+        }
+
+        // Vizato imazhin e coins prane totalit
+        if (Coin.getCoinImage() != null) {
+            g2.drawImage(Coin.getCoinImage(), ROAD_LEFT + 8, PANEL_HEIGHT - 52, 18, 18, null);
+            g2.setColor(new Color(255, 215, 0));
+            g2.setFont(new Font("Monospaced", Font.BOLD, 13));
+            g2.drawString("" + MainFrame.totalMoney, ROAD_LEFT + 30, PANEL_HEIGHT - 38);
         }
 
         g2.setFont(new Font("Monospaced", Font.BOLD, scoreSize));
