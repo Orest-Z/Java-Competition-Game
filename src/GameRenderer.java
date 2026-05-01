@@ -515,7 +515,7 @@ public class GameRenderer {
         g2.drawString("GAME OVER", boxX + 55, boxY + 35);
 
         // Monedhat — me ngjyrë ari dhe font më të qartë
-        int coinsEarned = score / 10;
+        int coinsEarned = MainFrame.totalMoney;
         g2.setColor(new Color(255, 215, 0));
         g2.setFont(new Font("Monospaced", Font.BOLD, 16));
         g2.drawString("Fituat: " + coinsEarned + " monedha", boxX + 65, boxY + 62);
