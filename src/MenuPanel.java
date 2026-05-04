@@ -49,11 +49,18 @@ public class MenuPanel extends JPanel {
             mainFrame.switchTo("SHOP");
         });
         add(shopBtn, gbc);
+        gbc.gridy = 2;
+        JButton lbBtn = createStyledButton("🏆  LEADERBOARD");
+        lbBtn.addActionListener(e -> {
+            audioManager.playSFX("assets/click.wav");
+            new LeaderboardDialog(mainFrame);
+        });
+        add(lbBtn, gbc);
 
 
 
         // ── Settings button ─────────────────────────────────────────────────
-        gbc.gridy = 2;             // row 1
+        gbc.gridy = 3;             // row 1
         JButton settingsBtn = createStyledButton("⚙  SETTINGS");
         settingsBtn.addActionListener(e -> {
             audioManager.playSFX("assets/click.wav");//Luhet soundi i klikimit
@@ -62,7 +69,7 @@ public class MenuPanel extends JPanel {
         add(settingsBtn, gbc);
 
         // ── Exit button ──────────────────────────────────────────────────────
-        gbc.gridy = 3;             // row 2
+        gbc.gridy = 4;             // row 2
         JButton exitBtn = createStyledButton("✕  EXIT");
         exitBtn.addActionListener(e -> {
             audioManager.playSFX("assets/click.wav");

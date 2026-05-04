@@ -25,6 +25,9 @@ public class MainFrame extends JFrame {
     // Deklarojme klasen AudioManager
     private AudioManager audioManager;
 
+    //Emri i lojtarit
+    public static String playerUsername = "";
+
     // Ekonomia dhe progresi
     public static int highScore   = 0;
     public static int totalMoney  = 0;
@@ -62,6 +65,40 @@ public class MainFrame extends JFrame {
         int[] saveData = SaveManager.load();
         highScore  = saveData[0];
         totalMoney = saveData[1];
+
+        // Dialog custom për username — shfaqet vetëm një herë kur hapet loja
+        JPanel usernamePanel = new JPanel(new BorderLayout(0, 8));
+        usernamePanel.setBackground(new Color(10, 10, 20));
+        usernamePanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        JLabel usernameLabel = new JLabel("Shkruaj username-in tënd:");
+        usernameLabel.setForeground(new Color(0, 200, 255));
+        usernameLabel.setFont(new Font("Monospaced", Font.BOLD, 13));
+
+        JTextField usernameField = new JTextField();
+        usernameField.setBackground(new Color(30, 30, 50));
+        usernameField.setForeground(Color.WHITE);
+        usernameField.setCaretColor(Color.WHITE);
+        usernameField.setFont(new Font("Monospaced", Font.PLAIN, 14));
+        usernameField.setBorder(BorderFactory.createLineBorder(new Color(0, 200, 255)));
+
+        usernamePanel.add(usernameLabel, BorderLayout.NORTH);
+        usernamePanel.add(usernameField, BorderLayout.CENTER);
+
+        int result = JOptionPane.showConfirmDialog(
+                null,
+                usernamePanel,
+                "Neon Highway",
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE
+        );
+
+        String name = usernameField.getText().trim();
+        if (result == JOptionPane.OK_OPTION && !name.isEmpty()) {
+            playerUsername = name;
+        } else {
+            playerUsername = "Player" + (int)(Math.random() * 9999);
+        }
 
         setTitle("Neon Highway");
         setDefaultCloseOperation(EXIT_ON_CLOSE);

@@ -242,6 +242,7 @@ public class GamePanel extends JPanel implements KeyListener {
                     coinsCollectedThisRun += score / 10;
                     if (score > MainFrame.highScore) MainFrame.highScore = score;
                     SaveManager.save(MainFrame.highScore, MainFrame.totalMoney);
+                    FirebaseManager.submitScore(MainFrame.playerUsername, score);
 
                     // UI — shfaq butonat menjëherë
                     restartButton.setVisible(true);
