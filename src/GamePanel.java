@@ -56,6 +56,9 @@ public class GamePanel extends JPanel implements KeyListener {
     public static boolean musicEnabled  = true;
     public static boolean sfxEnabled    = true;
 
+    //Perdorim kete variabel per te numeruar coinsat per raund
+    private int coinsCollectedThisRun = 0;
+
     //Shtova 3 variablat qe do te perdoren per shake-un e ekranit pas perplasjes
     private int shakeDuration = 0;    // sa frame mbetet shake
     private int shakeX = 0;           // offset horizontal
@@ -198,6 +201,7 @@ public class GamePanel extends JPanel implements KeyListener {
         trailY        = new int[TRAIL_LENGTH];
         trailLeanOffset = 0f;
         rainbowTick   = 0;
+        coinsCollectedThisRun = 0;
         carX = (ROAD_LEFT + ROAD_RIGHT) / 2 - CAR_WIDTH / 2;//pozicioni i startit te makines se lojtarit
         restartButton.setVisible(false);
         menuButton.setVisible(false);
@@ -235,6 +239,7 @@ public class GamePanel extends JPanel implements KeyListener {
 
                     // Ekonomia
                     MainFrame.totalMoney += score / 10;
+                    coinsCollectedThisRun += score / 10;
                     if (score > MainFrame.highScore) MainFrame.highScore = score;
                     SaveManager.save(MainFrame.highScore, MainFrame.totalMoney);
 
@@ -263,6 +268,7 @@ public class GamePanel extends JPanel implements KeyListener {
         enemySpeed  = 4;
         //Reset particles dhe shake-ut
         scorePulse  = 0;
+        coinsCollectedThisRun = 0;
         shakeDuration = 0;
         shakeX = 0;
         shakeY = 0;
@@ -333,7 +339,7 @@ public class GamePanel extends JPanel implements KeyListener {
         if (currentTrail.equals("RAINBOW")) rainbowTick++;
 
         // ── Update i te gjitha entiteteve (enemies, coins, shields, particles) ──
-        entityManager.update(carX, carY, level, enemySpeed, audioManager);
+        coinsCollectedThisRun += entityManager.update(carX, carY, level, enemySpeed, audioManager);
 
         checkCollisions();
 
@@ -396,7 +402,7 @@ public class GamePanel extends JPanel implements KeyListener {
 
         //Nqs mbaron loja shfaqim me ngjyre te kuqe mesazhin game over
         if (gameOver) {
-            renderer.drawGameOver(g2, score);
+            renderer.drawGameOver(g2, score, coinsCollectedThisRun);
         }
     }
 

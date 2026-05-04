@@ -494,7 +494,7 @@ public class GameRenderer {
     }
 
     // Vizatimi i Game Over box
-    void drawGameOver(Graphics2D g2, int score) {
+    void drawGameOver(Graphics2D g2, int score, int coinsEarnedTotal) {
         // Box i madh që përfshin gjithçka
         int boxX = PANEL_WIDTH / 2 - 155;
         int boxY = PANEL_HEIGHT / 2 - 50;
@@ -515,7 +515,7 @@ public class GameRenderer {
         g2.drawString("GAME OVER", boxX + 55, boxY + 35);
 
         // Monedhat — me ngjyrë ari dhe font më të qartë
-        int coinsEarned = MainFrame.totalMoney;
+        int coinsEarned = coinsEarnedTotal;
         g2.setColor(new Color(255, 215, 0));
         g2.setFont(new Font("Monospaced", Font.BOLD, 16));
         g2.drawString("Fituat: " + coinsEarned + " monedha", boxX + 65, boxY + 62);

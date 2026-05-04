@@ -139,9 +139,8 @@ public class EntityManager {
     }
 
     // Update i te gjitha entiteteve — thirret cdo frame nga GamePanel.update()
-    void update(int carX, int carY, int level, int enemySpeed,
-                AudioManager audioManager) {
-
+    int update(int carX, int carY, int level, int enemySpeed, AudioManager audioManager) {
+        int coinsPickedUp = 0;
         // ── Particles — vazhdojnë edhe pas gameOver ──
         Iterator<Particle> pit = particles.iterator();
         while (pit.hasNext()) {
@@ -186,7 +185,8 @@ public class EntityManager {
             Rectangle playerHitbox = new Rectangle(carX + 5, carY + 5,
                     GamePanel.CAR_WIDTH - 10, GamePanel.CAR_HEIGHT - 10);
             if (playerHitbox.intersects(coin.hitbox)) {
-                MainFrame.totalMoney += 10; // 10 monedha per coin
+                MainFrame.totalMoney += 10;
+                coinsPickedUp += 10;
                 audioManager.playSFX("assets/coinPickUp.wav"); // sfx per coin pickup
                 SaveManager.save(MainFrame.highScore, MainFrame.totalMoney);
                 cit.remove();
@@ -228,6 +228,7 @@ public class EntityManager {
                 shieldPulse  = 0f;
             }
         }
+        return coinsPickedUp;
     }
 
     // Pastrim i plotë i të gjitha entiteteve — thirret nga startGame() dhe restartGame()
