@@ -10,7 +10,7 @@ public class EnemyCar {
         this.y = y;
         this.speed = speed;
         this.bodyColor = bodyColor;
-        this.hitbox = new Rectangle(x, y, GamePanel.CAR_WIDTH, GamePanel.CAR_HEIGHT);
+        this.hitbox = new Rectangle(x - 2, y + 4, GamePanel.CAR_WIDTH + 4, GamePanel.CAR_HEIGHT - 8);
     }
 
     //Shtova metoden draw qe i vizaton makinat enemy te ngjashme si metoda e vizatimit te makines se lojtarit

@@ -131,7 +131,7 @@ public class MainFrame extends JFrame {
     }
 
     public static void main(String[] args) {
-        FlatDarkLaf.setup(); // ← shto këtë rresht
+        FlatDarkLaf.setup();
         SwingUtilities.invokeLater(() -> {
             new MainFrame().setVisible(true);
         });

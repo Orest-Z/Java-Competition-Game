@@ -1,6 +1,5 @@
 import java.awt.*;
 import javax.swing.*;
-import javax.sound.*;
 
 public class MenuPanel extends JPanel {
 

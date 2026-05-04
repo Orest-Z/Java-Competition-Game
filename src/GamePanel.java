@@ -191,6 +191,7 @@ public class GamePanel extends JPanel implements KeyListener {
 
     /** Call after the window is visible so the panel can receive focus. */
     public void startGame() {
+        gameOver    = false;
         crashPlayed = false;    //Sa here ristartojme lojen crashPLayed kthehet False. Ky ishte buggu
         paused = false;
         entityManager.clearAll();
@@ -218,13 +219,12 @@ public class GamePanel extends JPanel implements KeyListener {
     }
 
         private void checkCollisions() {
-            int hitW = MainFrame.currentSkin.equals("MOTO") ? 20 : CAR_WIDTH - 10;
+            int hitW = MainFrame.currentSkin.equals("MOTO") ? 22 : CAR_WIDTH - 6;
             int hitX = MainFrame.currentSkin.equals("MOTO")
-                    ? carX + (CAR_WIDTH - 20) / 2
-                    : carX + 5;
+                    ? carX + (CAR_WIDTH - 22) / 2
+                    : carX + 3;
 
-            Rectangle playerHitbox = new Rectangle(hitX, carY + 5, hitW, CAR_HEIGHT - 10);
-
+            Rectangle playerHitbox = new Rectangle(hitX, carY + 4, hitW, CAR_HEIGHT - 8);
             for (EnemyCar enemy : entityManager.enemies) {
                 if (playerHitbox.intersects(enemy.hitbox) && !crashPlayed && !entityManager.shieldActive) {
                     crashPlayed = true;
